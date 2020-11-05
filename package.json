@@ -1,0 +1,37 @@
+{
+  "name": "api-v2",
+  "version": "1.0.0",
+  "description": "OData inspired API for SQL/Cosmos databases hosted on the Azure Platform",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{js,jsx,ts,tsx}"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/assets/interfaces/",
+      "/assets/schema/",
+      "/tests/",
+      "/assets/entities/index"
+    ],
+    "coverageReporters": [
+      "html",
+      "lcov",
+      "text-summary"
+    ],
+    "coverageDirectory": "assets/tests/coverage",
+    "rootDir": "src",
+    "bail": 1,
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    }
+  },
+  "author": "Jackson J Jacob",
+  "license": "ISC"
+}
