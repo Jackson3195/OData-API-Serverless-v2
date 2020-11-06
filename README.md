@@ -14,6 +14,10 @@
 
 - To be implemented with TDD in mind
 - Improve understanding of the .vscode directory (Purpose? Benefits?)
+- Medium Article on how to setup SonarQube for MacOS/Windows
+
+# Learning Notes
+- .vscode directory
   - `extensions.json`
     - Allows you to create a list of recommended extentions for a particular project, for example in this project. I've added:
       - Azure Functions extention
@@ -23,12 +27,12 @@
     - More information on this particular file can be found [here](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions)
   - `launch.json`
     - A configuration file for running or debugging your application.
+    - Launch attachs a debugger to the node process allowing for breakpointing!!!
   - `settings.json`
     - Responsible for workspace based settings; things like format on save etc
   - `tasks.json`
     - A set of tasks to execute when you press F5 or equivalent run your application.
     - Relative to this project, I've tied it to the `npm run build:dev` command and then told the func: host to start
-- Medium Article on how to setup SonarQube for MacOS/Windows
 
 # Local Development Setup
 
