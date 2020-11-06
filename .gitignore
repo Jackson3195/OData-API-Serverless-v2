@@ -25,6 +25,7 @@ local.settings.json
 node_modules
 dist
 .scannerwork
+coverage
 
 # Local python packages
 .python_packages/
