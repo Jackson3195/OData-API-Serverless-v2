@@ -1,7 +1,6 @@
 # API Project V2
 
 # Project Requirements
-
 - The API should be self documenting
   - Document new tables and fields on apiary
 - The API should be to be generated dynamically
@@ -11,10 +10,9 @@
 - The API should provide metadata with all the tables and fields and their types
 
 # Learning Requirements
-
 - To be implemented with TDD in mind
 - Improve understanding of the .vscode directory (Purpose? Benefits?)
-- Medium Article on how to setup SonarQube for MacOS/Windows
+- How to setup SonarQube for MacOS/Windows
 
 # Learning Notes
 - .vscode directory

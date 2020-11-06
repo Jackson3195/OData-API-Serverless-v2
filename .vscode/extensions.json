@@ -3,6 +3,8 @@
     "ms-azuretools.vscode-azurefunctions",
     "dbaeumer.vscode-eslint",
     "rvest.vs-code-prettier-eslint",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "wayou.vscode-todo-highlight",
+    "gruntfuggly.todo-tree"
   ]
 }
