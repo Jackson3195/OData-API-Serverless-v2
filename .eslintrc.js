@@ -34,6 +34,8 @@ module.exports = {
     '@typescript-eslint/tslint',
   ],
   rules: {
+    'require-await': 'off',
+    '@typescript-eslint/require-await': 'warn',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': [
       'error',

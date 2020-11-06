@@ -10,7 +10,7 @@
     "build:dev": "npm run build && cpx -C \"./local.settings.json\" dist && cd dist && func extensions install --javascript",
     "local": "npm run build:dev && cd dist && NODE_ENV=development func host start",
     "test": "jest --passWithNoTests",
-    "lint": "eslint -c .eslintrc.js --ext .ts src"
+    "lint": "eslint -c .eslintrc.js --ext .ts src/"
   },
   "jest": {
     "preset": "ts-jest",
