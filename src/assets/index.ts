@@ -1,1 +1,1 @@
-export const hello = 'Hello!! From another module';
+export const hello = 'Hello!! From another moduleasdasdadsdasdssasdasdasdasfjdfhjfhjfhjsdfh sjf';
