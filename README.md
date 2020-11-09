@@ -31,6 +31,7 @@
   - `tasks.json`
     - A set of tasks to execute when you press F5 or equivalent run your application.
     - Relative to this project, I've tied it to the `npm run build:dev` command and then told the func: host to start
+  - TypeScript module resolution is stupid and requies another process to build. Implmeneted module resolution via external package and supported via hot-reloading aswell
 
 # Local Development Setup
 
@@ -58,18 +59,18 @@
 
 # TODOs
 
-- [x] - Sanitize values
-- [x] - Improve error handling
-- [x] - Use Entity & Entity Field tables to generate schema and interfaces
-- [x] - Use Entity Relationship tables to generate schema with foreign key relationships
+- [ ] - Sanitize values
+- [ ] - Improve error handling
+- [ ] - Use Entity & Entity Field tables to generate schema and interfaces
+- [ ] - Use Entity Relationship tables to generate schema with foreign key relationships
 - [ ] - Integrate with REDIS
-- [x] - Be able to query data using $select, $filter
-- [x] - Artiect a way to inject logic based on REQUEST
-- [x] - Unit tests with 99%+ coverage
-- [x] - Support composite primary keys
-- [x] - Integrate Sonarqube into project
-- [x] - Dynamic Class loading
-  - [x] - Use a dictionary of object to class and then do new dictionary[entity]()
+- [ ] - Be able to query data using $select, $filter
+- [ ] - Artiect a way to inject logic based on REQUEST
+- [ ] - Unit tests with 99%+ coverage
+- [ ] - Support composite primary keys
+- [ ] - Integrate Sonarqube into project
+- [ ] - Dynamic Class loading
+  - [ ] - Use a dictionary of object to class and then do new dictionary
 
 # Dev - TODOs
 
@@ -99,6 +100,8 @@
 ## SonarQube
 
 ## Pre-Requisites
+## Debugging
+- Debugging is available by pressing F5 or "Run" project button. The .vscode folder has been configured to attach on the specified port
 
 ## Hot Reloading
 - This project supports hot-reloading via the following method:
