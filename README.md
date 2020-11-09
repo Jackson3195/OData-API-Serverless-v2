@@ -31,7 +31,8 @@
   - `tasks.json`
     - A set of tasks to execute when you press F5 or equivalent run your application.
     - Relative to this project, I've tied it to the `npm run build:dev` command and then told the func: host to start
-  - TypeScript module resolution is stupid and requies another process to build. Implmeneted module resolution via external package and supported via hot-reloading aswell
+  - TypeScript module resolution is stupid and requies another process to replace alias in post-build step.
+    - Implmeneted module resolution via external package and supported via hot-reloading aswell
 
 # Local Development Setup
 
