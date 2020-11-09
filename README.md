@@ -99,3 +99,9 @@
 ## SonarQube
 
 ## Pre-Requisites
+
+## Hot Reloading
+- This project supports hot-reloading via the following method:
+  1. Run ```npm run local```
+  2. On another terminal window run ```npm run watch```
+  3. Once you save a .ts file, it should hot-reload and the function host should then also reload so that the new changes take effect
