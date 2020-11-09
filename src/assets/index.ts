@@ -1,3 +1,1 @@
-console.log('Hello!!!');
-
-export const hello = 'Hello';
+export const hello = 'Hello!! From another module';

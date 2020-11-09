@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import { Context, HttpRequest } from '@azure/functions';
 import { hello } from '@assets/index';
 
