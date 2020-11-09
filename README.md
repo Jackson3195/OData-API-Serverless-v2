@@ -105,3 +105,4 @@
   1. Run ```npm run local```
   2. On another terminal window run ```npm run watch```
   3. Once you save a .ts file, it should hot-reload and the function host should then also reload so that the new changes take effect
+  - Note: Hot reloading does not work in debugging mode (F5) yet

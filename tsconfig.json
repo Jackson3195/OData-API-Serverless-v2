@@ -12,7 +12,10 @@
     "pretty": true,
     "outDir": "dist",
     "baseUrl": ".",
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@assets/*": [ "src/assets/*" ],
+    }
   },
   "include": [
     "src/**/*.ts",
