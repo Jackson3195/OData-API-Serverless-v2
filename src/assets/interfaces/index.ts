@@ -1,4 +1,6 @@
 export type Primitives =  string | number | boolean | Date;
+export type JSTypes = 'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function';
+
 
 export interface ContextResponse {
     status: number;

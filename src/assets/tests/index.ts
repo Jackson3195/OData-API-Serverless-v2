@@ -19,9 +19,15 @@ export function GetFreshContext (): MockContext {
         req: {
             method: 'GET', /* Defaults to Get */
             url: '',
-            headers: {},
+            headers: {
+                authorization: 'Bearer Token'
+            },
             query: {},
-            params: {},
+            params: {
+                entity: 'Users',
+                id: '3',
+            },
+            body: null,
         },
         res: {
             status: 200, /* Defaults to 200 */

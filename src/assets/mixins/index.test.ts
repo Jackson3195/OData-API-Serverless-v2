@@ -1,6 +1,6 @@
 import { ResponseError } from '@assets/interfaces';
 import { GetFreshContext, MockContext } from '@testing/index';
-import { HandleError } from './index';
+import { HandleError, Sanitize, Captialize } from './index';
 
 describe('Mixins - HandleError', () => {
     let context: MockContext;
@@ -36,4 +36,54 @@ describe('Mixins - HandleError', () => {
 
         expect(context.res.status).toBe(401);
     });
+});
+
+describe('Mixins - Sanitize', () => {
+
+    test('Sanitizes values - LIGHT', () => {
+        const dirtyData: Record<string, any> = {
+            data1: '-- Hello; SELECT * FROM dbo.[user];',
+            data2: '<?php echo "Hello" ?>',
+            data3: 'test --<?sdgsg?> test2',
+            data4: 123,
+            data5: () => 'Hello',
+        };
+
+        const cleanData: Record<string, any> = {
+            data1: ' Hello SELECT * FROM dbo.[user]',
+            data2: 'php echo "Hello" ',
+            data3: 'test sdgsg test2',
+            data4: 123,
+            data5: undefined,
+        };
+
+        for (const key of Object.keys(dirtyData)) {
+            const result: string = Sanitize(dirtyData[key]);
+            expect(result).toBe(cleanData[key]);
+        }
+    });
+
+    test('Sanitizes values - HARD', () => {
+        const result: string = Sanitize('This is one <?php echo ?> though #$&&&!!!! to crack', true);
+        expect(result).toBe('Thisisonephpechothough$tocrack');
+    });
+});
+
+describe('Mixins - Captialize', () => {
+
+    test('Capitilzation works', () => {
+        const word = 'word';
+        const result: string = Captialize(word);
+        const char: string = result.charAt(0);
+        expect(char).toBe('W');
+    });
+
+    test('Handles invalid input', () => {
+        const invalidInputs: any[] = [123, {}, [], true];
+        for (const input of invalidInputs) {
+            const result: string = Captialize(input);
+            expect(result).toBeNull();
+        }
+    });
+
 });
