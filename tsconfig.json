@@ -15,10 +15,11 @@
     "sourceMap": true,
     "paths": {
       "@assets/*": [ "src/assets/*" ],
+      "@testing/*": [ "src/assets/tests/*" ]
     }
   },
   "include": [
-    "src/**/*.ts",
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

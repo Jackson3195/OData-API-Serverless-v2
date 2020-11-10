@@ -6,8 +6,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["get", "post"],
-      "route": "v2"
+      "route": "v2/{entity}/{id?}"
     },
     {
       "type": "http",

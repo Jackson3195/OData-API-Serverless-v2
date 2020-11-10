@@ -6,35 +6,13 @@
   "scripts": {
     "prebuild": "rm -rf \"./dist\"",
     "reorganise": "cpx \"./package.json\" dist & cpx \"src/**/*.json\" dist & cpx \"./host.json\" dist",
-    "build": "tsc -P tsconfig.json && npm run reorganise && npm run postbuild",
+    "build": "tsc -P tsconfig.build.json && npm run reorganise && npm run postbuild",
     "build:dev": "npm run build && cpx -C \"./local.settings.json\" dist && cd dist && func extensions install --javascript",
-    "postbuild": "ef-tspm",
+    "postbuild": "ef-tspm -c ./tsconfig.build.json",
     "local": "npm run build:dev && cd dist && NODE_ENV=development func host start",
-    "watch": "tsc-watch --onSuccess 'ef-tspm -s'",
-    "test": "jest --passWithNoTests",
+    "watch": "tsc-watch -P tsconfig.build.json --onSuccess 'ef-tspm -s -c ./tsconfig.build.json'",
+    "test": "jest --passWithNoTests --watch",
     "lint": "eslint -c .eslintrc.js --ext .ts src/"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "**/*.{js,jsx,ts,tsx}"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "coverageReporters": [
-      "html",
-      "lcov",
-      "text-summary"
-    ],
-    "coverageDirectory": "../coverage",
-    "rootDir": "src",
-    "bail": 1,
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    }
   },
   "author": "Jackson J Jacob",
   "license": "ISC",
@@ -54,7 +32,9 @@
     "eslint-plugin-prefer-arrow": "^1.2.2",
     "jest": "^26.6.3",
     "ts-jest": "^26.4.3",
+    "ts-node": "^9.0.0",
     "tsc-watch": "^4.2.9",
+    "tsconfig-paths-jest": "0.0.1",
     "tslint": "^6.1.3",
     "typescript": "^4.0.5"
   }

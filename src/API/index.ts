@@ -1,13 +1,14 @@
-import { Context, HttpRequest } from '@azure/functions';
+import { Context, HttpMethod, HttpRequest, AzureFunction } from '@azure/functions';
 import { hello } from '@assets/index';
 
-// TODO: Ensure alais imports work for example @interfaces/modules should then blah/blah/interfaces/modules
-module.exports = async function (ctx: Context, _req: HttpRequest) {
-    const message = 'Hello World!!!!';
-    ctx.log.warn(hello);
-    ctx.log.warn(message);
-    ctx.res.status = 200;
-    ctx.res.body = {
-        message,
-    };
+const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
+    // Determine if method allowed
+    const method: HttpMethod = req.method;
+    if (method === 'GET' || method === 'POST' || method === 'PATCH' || method === 'DELETE') {
+        ctx.log.warn('Allowed!!' + hello);
+    } else {
+        ctx.res.status = 405;
+    }
 };
+
+export default api;

@@ -24,8 +24,9 @@ module.exports = {
   parserOptions: {
     project: 'tsconfig.json',
     sourceType: 'module',
+    
   },
-  ignorePatterns: ['.eslintrc.js', 'dist/**/*.*'],
+  ignorePatterns: ['.eslintrc.js', 'jest.config.ts', 'dist/**/*.*'],
   plugins: [
     'eslint-plugin-import',
     'eslint-plugin-prefer-arrow',
@@ -36,6 +37,8 @@ module.exports = {
   rules: {
     'require-await': 'off',
     '@typescript-eslint/require-await': 'warn',
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': [
       'error',
