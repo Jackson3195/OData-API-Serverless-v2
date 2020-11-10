@@ -11,7 +11,7 @@
     "postbuild": "ef-tspm -c ./tsconfig.build.json",
     "local": "npm run build:dev && cd dist && NODE_ENV=development func host start",
     "watch": "tsc-watch -P tsconfig.build.json --onSuccess 'ef-tspm -s -c ./tsconfig.build.json'",
-    "test": "jest --passWithNoTests --watch",
+    "test": "jest --config jest.config.ts --watch",
     "lint": "eslint -c .eslintrc.js --ext .ts src/"
   },
   "author": "Jackson J Jacob",

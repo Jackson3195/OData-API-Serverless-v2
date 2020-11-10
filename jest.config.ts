@@ -10,14 +10,16 @@ const config: Config.InitialOptions = {
       '**/*.{js,jsx,ts,tsx}'
     ],
     coveragePathIgnorePatterns: [
-      '/node_modules/'
+      '/node_modules/',
+      '<rootDir>/src/assets/tests/',
+      'jest.config.ts'
     ],
     coverageReporters: [
       'html',
       'lcov',
       'text-summary'
     ],
-    coverageDirectory: '../coverage',
+    coverageDirectory: './coverage',
     rootDir: '.',
     bail: 1,
     transform: {

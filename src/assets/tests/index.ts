@@ -1,5 +1,6 @@
 import { Context, Logger } from '@azure/functions';
 
+// Get a blank instance of an azure functions context for testing
 export function GetFreshContext (): Context {
     return {
         invocationId: '',
