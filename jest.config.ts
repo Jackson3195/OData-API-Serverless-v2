@@ -12,7 +12,8 @@ const config: Config.InitialOptions = {
     coveragePathIgnorePatterns: [
       '/node_modules/',
       '<rootDir>/src/assets/tests/',
-      'jest.config.ts'
+      'jest.config.ts',
+      '.eslintrc.js'
     ],
     coverageReporters: [
       'html',
