@@ -1,7 +1,11 @@
 import { Context, Logger } from '@azure/functions';
 
+export interface MockContext extends Context {
+    done: Context['done'] & jest.Mock;
+}
+
 // Get a blank instance of an azure functions context for testing
-export function GetFreshContext (): Context {
+export function GetFreshContext (): MockContext {
     return {
         invocationId: '',
         executionContext: {
@@ -20,7 +24,7 @@ export function GetFreshContext (): Context {
             params: {},
         },
         res: {
-            status: 400, /* Defaults to 400 */
+            status: 200, /* Defaults to 200 */
             body: '',
         } as Record<string, any>,
         done: jest.fn(function done () {
