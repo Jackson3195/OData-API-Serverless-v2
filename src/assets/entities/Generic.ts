@@ -46,16 +46,13 @@ export default class Generic {
                 this.ctx.log.warn('TODO: Generic - GET');
                 break;
             case 'POST':
-                const postValue: IResult<unknown> = await this.sqlGenerator.CreateEntity(this.entity, this.entityData);
-                this.HandleResponse(201, postValue);
+                this.HandleResponse(201, await this.sqlGenerator.GenerateAndExecute('INSERT', this.entity, null, this.entityData));
                 break;
             case 'PATCH':
-                const patchValue: IResult<unknown> = await this.sqlGenerator.UpdateEntity(this.entity, this.entityId, this.entityData);
-                this.HandleResponse(200, patchValue);
+                this.HandleResponse(200, await this.sqlGenerator.GenerateAndExecute('UPDATE', this.entity, this.entityId, this.entityData));
                 break;
             case 'DELETE':
-                const deleteValue: IResult<unknown> = await this.sqlGenerator.UpdateEntity(this.entity, this.entityId, this.entityData);
-                this.HandleResponse(204, deleteValue);
+                this.HandleResponse(204, await this.sqlGenerator.GenerateAndExecute('DELETE', this.entity, this.entityId, {}));
                 break;
             default:
                 HandleError(this.ctx, [new Error('Unknown method provided to entity Generic')], this.entityData);

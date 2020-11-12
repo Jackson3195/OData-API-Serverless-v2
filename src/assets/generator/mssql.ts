@@ -34,34 +34,12 @@ export default class MSSqlGenerator {
         this.local = process.env['AzureWebJobsStorage'] === 'UseDevelopmentStorage=true';
     }
 
-    public CreateEntity (entity: string, attributes: Record<string, any>): Promise<mssql.IResult<unknown>> {
-        const inputValues: SQLInputObject = this.GenerateStatement('INSERT', entity, null, attributes);
-        if (inputValues) {
-            return this.db.query(inputValues.sql, inputValues.variables);
-        } else {
-            return Promise.reject();
-        }
+    public GenerateAndExecute (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): Promise<mssql.IResult<unknown>> {
+        const inputValues = this.GenerateStatement(type, entity, entityId, attributes);
+        return this.db.query(inputValues.sql, inputValues.variables);
     }
 
-    public UpdateEntity (entity: string, entityId: string, attributes: Record<string, any>): Promise<mssql.IResult<unknown>> {
-        const inputValues: SQLInputObject = this.GenerateStatement('UPDATE', entity, entityId, attributes);
-        if (inputValues) {
-            return this.db.query(inputValues.sql, inputValues.variables);
-        } else {
-            return Promise.reject();
-        }
-    }
-
-    public DeleteEntity (entity: string, entityId: string): Promise<mssql.IResult<unknown>> {
-        const inputValues: SQLInputObject = this.GenerateStatement('DELETE', entity, entityId, {});
-        if (inputValues) {
-            return this.db.query(inputValues.sql, inputValues.variables);
-        } else {
-            return Promise.reject();
-        }
-    }
-
-    private GenerateStatement (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>) {
+    private GenerateStatement (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): SQLInputObject {
         // Get the target schema
         const schema: Schema = this.GetSchema(entity);
         const ts: Schema['entity'] = schema ? schema[entity] : null;
