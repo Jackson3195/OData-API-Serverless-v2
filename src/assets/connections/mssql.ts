@@ -25,7 +25,7 @@ const mssqlConfig: config = {
 };
 
 // Create connection
-export const pool: ConnectionPool = new ConnectionPool(mssqlConfig);
+const pool: ConnectionPool = new ConnectionPool(mssqlConfig);
 pool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connection Pool',  err); }});
 
 export default class MSSqlDB {
@@ -51,7 +51,7 @@ export default class MSSqlDB {
                 const ps: PreparedStatement = new PreparedStatement(this.pool);
                 // Deal with inputs
                 for (const input of variables) {
-                // Create prepare input parameter object
+                    // Create prepare input parameter object
                     ps.input(input.name, input.type);
                     preparedInputs[input.name] = input.value;
                 }
