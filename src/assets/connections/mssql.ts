@@ -4,7 +4,6 @@
 import { ConnectionPool, PreparedStatement } from 'mssql';
 import { config, ISqlTypeFactoryWithLength, ISqlTypeWithLength, ISqlTypeFactoryWithNoParams, ISqlTypeWithPrecisionScale, IResult, IProcedureResult, ISqlType, ISqlTypeFactory } from 'mssql';
 import { Context } from '@azure/functions';
-import { HandleError } from '@assets/mixins';
 
 const mssqlConfig: config = {
     user: process.env['AzureMSSQLUser'],
@@ -32,7 +31,7 @@ pool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connect
 export default class MSSqlDB {
     private ctx: Context;
     // Public for testing purposes
-    public pool: ConnectionPool = pool;
+    private pool: ConnectionPool = pool;
 
     constructor (context: Context) {
         this.ctx = context;
@@ -90,7 +89,7 @@ export default class MSSqlDB {
     }
 
     public handleError (err: Error): void {
-        HandleError(this.ctx, [err]);
+        this.ctx.log.error(err);
     }
 }
 

@@ -1,72 +1,56 @@
-import { ResponseError } from '@assets/interfaces';
 import { GetFreshContext, MockContext } from '@testing/index';
+import { ResponseError } from '@assets/interfaces';
 import api from './index';
 
 describe('API Functionality', () => {
 
-    let defaultContext: MockContext;
+    let ctx: MockContext;
 
     beforeEach(() => {
-        defaultContext = GetFreshContext();
+        ctx = GetFreshContext();
     });
 
-    // Only supported methods are GET, POST, PATCH, DELETE
     test('Rejects unsupported request type with status code 405', async () => {
-        defaultContext.req.method = 'PUT';
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(405);
-    });
-
-    test('Unauthorised requests correctly', async () => {
-        defaultContext.req.headers = {};
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(401);
-        expect(defaultContext.done).toBeCalled();
-    });
-
-    test('Authorised requests correctly', async () => {
-        await api(defaultContext, defaultContext.req);
-        console.log(defaultContext.res.body);
-        expect(defaultContext.res.status).toBe(200);
+        ctx.req.method = 'PUT';
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(405);
     });
 
     test('Rejects requests if no entity passed', async () => {
-        delete defaultContext.req.params.entity;
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(400);
-        const body: ResponseError = defaultContext.res.body;
+        delete ctx.req.params.entity;
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        const body: ResponseError = ctx.res.body;
         expect(body.errors[0].message).toContain('Entity required');
     });
 
-    test('Rejects requests if no entity id passed', async () => {
-        defaultContext.req.method = 'PATCH';
-        delete defaultContext.req.params.id;
+    it.each`
+        entity | input | output
+        ${'Users'} | ${{Firstname: 'Jackson', Surname: 'Jacob'}} | ${{Firstname: 'Jackson', Surname: 'Jacob'}}
+        ${'Cars'} | ${{Make: 'Bugatti', Model: 'Chiron'}} | ${{Make: 'Bugatti', Model: 'Chiron'}},
+    `('Should create a entity', async ({entity, input, output}) => {
+        ctx.req.method = 'POST';
+        ctx.req.params['entity'] = entity;
+        ctx.req.body = input;
 
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(400);
-        const body: ResponseError = defaultContext.res.body;
-        expect(body.errors[0].message).toContain('EntityId required');
+        await api(ctx, ctx.req);
 
-        defaultContext.req.method = 'DELETE';
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(400);
-        const body2: ResponseError = defaultContext.res.body;
-        expect(body2.errors[0].message).toContain('EntityId required');
+        expect(ctx.res.status).toBe(201);
+        expect(ctx.res.body).toMatchObject(output);
     });
 
-    test('Rejects requests if no body is passed', async () => {
-        defaultContext.req.body = null;
-        defaultContext.req.method = 'POST';
+    // it.each`
+    //     entity | id | input | output
+    //     ${'Users'} | ${3} | ${{Surname: 'Spectre'}} | ${{Firstname: 'Jackson', Surname: 'Spectre'}}
+    // `('Should update a entity', async ({entity, id, input, output}) => {
+    //     ctx.req.method = 'PATCH';
+    //     ctx.req.params['entity'] = entity;
+    //     ctx.req.params['id'] = id;
+    //     ctx.req.body = input;
 
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(400);
-        const body: ResponseError = defaultContext.res.body;
-        expect(body.errors[0].message).toContain('Entity body required');
+    //     await api(ctx, ctx.req);
 
-        defaultContext.req.method = 'PATCH';
-        await api(defaultContext, defaultContext.req);
-        expect(defaultContext.res.status).toBe(400);
-        const body2: ResponseError = defaultContext.res.body;
-        expect(body2.errors[0].message).toContain('Entity body required');
-    });
+    //     expect(ctx.res.status).toBe(200);
+    //     expect(ctx.res.body).toMatchObject(output);
+    // });
 });
