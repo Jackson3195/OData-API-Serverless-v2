@@ -1,6 +1,7 @@
 import { Context, HttpMethod, HttpRequest, AzureFunction } from '@azure/functions';
 import { Captialize, HandleError, Sanitize } from '@assets/mixins';
 import { Primitives } from '@assets/interfaces';
+import Entities from '@assets/entities';
 
 const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
     // Determine if method allowed
@@ -13,7 +14,7 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
                 if (req.params['entity']) {
                     const entity = Captialize(Sanitize<string>(req.params['entity'], true).toLocaleLowerCase());
                     let entityId: string;
-                    let body: Record<string, Primitives> = null;
+                    let entityBody: Record<string, Primitives> = null;
 
                     // Populate entityId if needed
                     if (method === 'PATCH' || method === 'DELETE') {
@@ -28,21 +29,20 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
                     if (method === 'GET' || method === 'POST' || method === 'PATCH') {
                         // If GET, populate with query otherwise populate with request body
                         if (method === 'GET') {
-                            body = req.query;
+                            entityBody = req.query;
                         } else {
                             // Handle empty bodys
                             if (req.body) {
-                                body = ctx.req.body;
+                                entityBody = ctx.req.body;
                             } else {
                                 throw new Error('Entity body required');
                             }
                         }
                     }
 
-                    ctx.log.warn(body);
-                    ctx.log.warn(entity);
-
                     // Determine if entity is generic or bespoke entity
+                    let targetEntity = new Entities['Generic'](ctx, entity, entityId, entityBody);
+                    await targetEntity.HandleRequest();
                 } else {
                     throw new Error('Entity required');
                 }

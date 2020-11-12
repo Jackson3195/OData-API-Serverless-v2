@@ -26,6 +26,7 @@ describe('API Functionality', () => {
 
     test('Authorised requests correctly', async () => {
         await api(defaultContext, defaultContext.req);
+        console.log(defaultContext.res.body);
         expect(defaultContext.res.status).toBe(200);
     });
 
@@ -61,5 +62,11 @@ describe('API Functionality', () => {
         expect(defaultContext.res.status).toBe(400);
         const body: ResponseError = defaultContext.res.body;
         expect(body.errors[0].message).toContain('Entity body required');
+
+        defaultContext.req.method = 'PATCH';
+        await api(defaultContext, defaultContext.req);
+        expect(defaultContext.res.status).toBe(400);
+        const body2: ResponseError = defaultContext.res.body;
+        expect(body2.errors[0].message).toContain('Entity body required');
     });
 });

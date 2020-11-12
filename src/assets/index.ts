@@ -1,1 +1,0 @@
-export const hello = 'Hello!! From another moduleasdasdadsdasdssasdasdasdasfjdfhjfhjfhjsdfh sjf';

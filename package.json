@@ -10,17 +10,22 @@
     "build:dev": "npm run build && cpx -C \"./local.settings.json\" dist && cd dist && func extensions install --javascript",
     "postbuild": "ef-tspm -c ./tsconfig.build.json",
     "local": "npm run build:dev && cd dist && NODE_ENV=development func host start",
-    "watch": "tsc-watch -P tsconfig.build.json --onSuccess 'ef-tspm -s -c ./tsconfig.build.json'",
-    "test": "jest --config jest.config.ts --watch",
+    "watch:dev": "tsc-watch -P tsconfig.build.json --onSuccess 'ef-tspm -s -c ./tsconfig.build.json'",
+    "watch:test": "jest --config jest.config.ts --watch",
+    "test": "jest --config jest.config.ts --no-cache",
+    "test:1": "jest -t mssql",
     "lint": "eslint -c .eslintrc.js --ext .ts src/"
   },
   "author": "Jackson J Jacob",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "mssql": "^6.2.3"
+  },
   "devDependencies": {
     "@azure/functions": "^1.2.2",
     "@ef-carbon/tspm": "^2.2.5",
     "@types/jest": "^26.0.15",
+    "@types/mssql": "^6.0.5",
     "@types/node": "^14.14.6",
     "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/eslint-plugin-tslint": "^4.4.1",
