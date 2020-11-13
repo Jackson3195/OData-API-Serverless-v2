@@ -5,6 +5,9 @@ import MSSqlDB from '@assets/connections/mssql';
 import MSSqlGenerator from '@assets/generator/mssql';
 import { IResult } from 'mssql';
 
+// TODO: Responsible for getting the Schema
+// TODO: Passes the schema to get the generator to construct the SQL
+// TODO: SQL is then passed into the database
 export default class Generic {
     // Class variables
     private ctx: Context;
