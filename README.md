@@ -11,6 +11,7 @@
 
 # Learning Requirements
 - To be implemented with TDD in mind
+- Adhere to S.O.L.I.D Principals
 - Improve understanding of the .vscode directory (Purpose? Benefits?)
 - How to setup SonarQube for MacOS/Windows
 

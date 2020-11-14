@@ -13,7 +13,7 @@ const mssqlConfig: config = {
     connectionTimeout: 10000,
     parseJSON: true,
     pool: {
-        max: 1,
+        max: 2,
         min: 1,
         acquireTimeoutMillis: 30000,
         idleTimeoutMillis: 10000,
@@ -24,14 +24,14 @@ const mssqlConfig: config = {
     },
 };
 
-// Create connection
-const pool: ConnectionPool = new ConnectionPool(mssqlConfig);
-pool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connection Pool',  err); }});
+// Create connection pool (Static to be shared across all instances)
+const staticPool: ConnectionPool = new ConnectionPool(mssqlConfig);
+staticPool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connection Pool',  err); }});
 
 export default class MSSqlConnection {
     private ctx: Context;
     // Public for testing purposes
-    private pool: ConnectionPool = pool;
+    private pool: ConnectionPool = staticPool;
 
     constructor (context: Context) {
         this.ctx = context;
