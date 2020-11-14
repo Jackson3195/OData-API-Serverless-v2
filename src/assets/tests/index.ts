@@ -1,3 +1,4 @@
+import MSSqlConnection, { QueryDBVariable } from '@assets/connection/mssql';
 import { Context, Logger } from '@azure/functions';
 
 export interface MockContext extends Context {
@@ -51,4 +52,11 @@ export function GetFreshContext (): MockContext {
             attributes: {}
         }
     };
+}
+
+// Get the SQL and Variables data of the mocked MSSqlConnection class
+export function GetSQLData (mocked: jest.Mock<typeof MSSqlConnection, any>): { sql: string; variables: QueryDBVariable[] } {
+    const executeMock = (mocked.mock.results[0].value as { execute: jest.Mock}).execute;
+    const result = (executeMock.mock.results[0].value as { sql: string; variables: QueryDBVariable[]});
+    return result;
 }

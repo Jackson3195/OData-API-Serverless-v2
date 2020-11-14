@@ -1,5 +1,5 @@
-import { GetFreshContext, MockContext } from '@assets/tests';
-// Note: Import so that the mocked class is used instead of the real one
+import { GetFreshContext, MockContext, GetSQLData } from '@assets/tests';
+// Note: Import first so that the mocked class is used instead of the real one
 import MSSqlConnection from '@assets/connection/mssql';
 jest.mock('@assets/connection/mssql');
 const mockedMSSqlConnection = MSSqlConnection as unknown as jest.Mock<typeof MSSqlConnection>;
@@ -24,6 +24,8 @@ describe('Get a entity', () => {
 
         await api(ctx, ctx.req);
 
+        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        expect(sqlResults.sql).toBe('SELECT * FROM dbo.[user]');
         expect(ctx.res.status).toBe(201);
         expect(ctx.res.body).toMatchObject({Firstname: 'Jackson', Surname: 'Jacob'});
     });

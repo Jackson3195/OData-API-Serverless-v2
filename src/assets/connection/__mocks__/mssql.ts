@@ -11,7 +11,7 @@ mssql.ConnectionPool = jest.fn(() => ({
 const mockMSSqlConnection = jest.fn().mockImplementation(() => {
     return {
         execute: jest.fn((sql: string, variables: any[]) => {
-            console.log('Mocked SQL execute was called');
+            console.log(sql);
             return {
                 sql,
                 variables
