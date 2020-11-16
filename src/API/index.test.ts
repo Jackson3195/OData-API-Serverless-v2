@@ -88,7 +88,7 @@ describe('API Functionality', () => {
         expect(sqlResults.variables[3].value).toBeInstanceOf(Date);
     });
 
-    test('It should obsolete a entity with a PATCH request', async () => {
+    test('It should obsolete a entity via a PATCH request', async () => {
         ctx.req.method = 'PATCH';
         ctx.req.params['entity'] = 'Users';
         ctx.req.params['id'] = '1';
@@ -108,6 +108,54 @@ describe('API Functionality', () => {
         expect(sqlResults.variables[0].value).toBe(true);
         expect(sqlResults.variables[1].value).toBeInstanceOf(Date);
         expect(sqlResults.variables[3].value).toBeInstanceOf(Date);
+    });
+
+    //  TODO: Implement
+    test('It should un-obsolete a entity via a PATCH request', () => {
+        expect(false).toBe(true);
+    });
+
+    test('It should return a 405 method not allowed if unhandled method is passed', async () => {
+        ctx.req.method = 'PUT';
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(405);
+    });
+
+    // TODO: Check body for error response
+    test('It should error when the entity is not provided', async () => {
+        delete ctx.req.params['entity'];
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+    });
+
+    //  TODO: Implement
+    test('It should error when the entity id is not provided', () => {
+        expect(false).toBe(true);
+    });
+
+    //  TODO: Implement
+    test('It should error when the entity body is not provided', () => {
+        expect(false).toBe(true);
+    });
+
+    //  TODO: Implement
+    test('It should error when the entity body is not provided', () => {
+        expect(false).toBe(true);
+    });
+
+    //  TODO: Implement
+    test('It should error if a token is invalid', () => {
+        expect(false).toBe(true);
+    });
+
+    //  TODO: Implement
+    test('It should update a entity with a composite primary key', () => {
+        expect(false).toBe(true);
+    });
+
+    //  TODO: Implement
+    test('It should error if an unknown entity is provided', () => {
+        expect(false).toBe(true);
     });
 
 

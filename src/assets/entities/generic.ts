@@ -4,11 +4,6 @@ import { IResult } from 'mssql';
 import MSSqlGenerator from '@assets/generator/mssql';
 import MSSqlConnection from '@assets/connections/mssql';
 
-interface EntityResponse {
-    code: number;
-    results: IResult<unknown>;
-}
-
 export default class Generic {
     // Class variables
     private ctx: Context;
@@ -35,17 +30,11 @@ export default class Generic {
         this.sqlGenerator = new MSSqlGenerator(this.ctx, this.sqlDb);
     }
 
-    public async HandleRequest (): Promise<EntityResponse> {
+    public async HandleRequest (): Promise<void> {
         // Overrideable actions to do before the entity is saved
         if (this.method !== 'GET') {
             this.BeforeEntitySaved();
         }
-
-        // Initialise response payload
-        const response: EntityResponse = {
-            code: null,
-            results: null
-        };
 
         // Determine which action to take
         switch (this.method) {
@@ -71,8 +60,6 @@ export default class Generic {
         if (this.method !== 'GET') {
             this.AfterEntitySaved();
         }
-
-        return response;
     }
 
     protected BeforeEntitySaved (): void {

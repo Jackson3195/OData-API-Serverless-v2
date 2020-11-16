@@ -6,7 +6,6 @@ export function HandleError (ctx: Context, errors: Error[], payload: Record<stri
     const errorDetails: ResponseErrorBody[] = [];
     let unauthorised = false;
     for (let e of errors) {
-        console.error(e);
         // Determine if unauthorised has been see
         if (e.message === 'Unauthorised') {
             unauthorised = true;
@@ -72,7 +71,7 @@ export function Sanitize<T> (input: unknown, hard = false): T {
         case 'bigint':
         case 'boolean':
         case 'object':
-            return input  as T;
+            return input as T;
         default:
             return undefined;
     }

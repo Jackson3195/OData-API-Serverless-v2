@@ -40,6 +40,7 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
                         }
                     }
 
+                    // TODO: Handle bespoke entity logic
                     // Determine if entity is generic or bespoke entity
                     let targetEntity = new Entities['Generic'](ctx, entity, entityId, entityBody);
                     await targetEntity.HandleRequest();

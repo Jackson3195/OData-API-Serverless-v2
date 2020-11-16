@@ -46,7 +46,7 @@ export default class MSSqlConnection {
         if (sql) {
             // Create return result
             return new Promise((resolve, reject) => {
-            // Create new prepared statement
+                // Create new prepared statement
                 let preparedInputs: Record<string, (ISqlTypeFactory | ISqlType)> = {};
                 const ps: PreparedStatement = new PreparedStatement(this.pool);
                 // Deal with inputs
