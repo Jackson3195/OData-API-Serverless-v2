@@ -123,7 +123,7 @@ export default class MSSqlGenerator {
                                                 const pkVariable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, primaryKeyAttribute.SQL, primaryKeyValues[y]);
                                                 variables.push(pkVariable);
                                             } else {
-                                                this.errors.push(new Error('Invalid primary key: ' + primaryKeyValues[y].toString()));
+                                                this.errors.push(new Error('Invalid primary key: ' + (primaryKeyValues[y] ? primaryKeyValues[y].toString() : null)));
                                             }
                                         } else {
                                             this.errors.push(new Error(`${entity} missing primary key`));
@@ -224,7 +224,7 @@ export default class MSSqlGenerator {
     }
 
     private isFieldAttribute (attribute: FieldAttribute | ReferenceAttribute): attribute is FieldAttribute {
-        return (attribute as FieldAttribute).Type === 'Field';
+        return attribute.Type === 'Field';
     }
 
     private GenerateQueryDBVariables (table: string, metadata: SQLMetadata, value: Primitives) {

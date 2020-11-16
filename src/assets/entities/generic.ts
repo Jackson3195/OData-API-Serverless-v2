@@ -56,11 +56,10 @@ export default class Generic {
                 this.HandleResponse(201, await this.sqlGenerator.GenerateAndExecute('INSERT', this.entity, null, this.entityData));
                 break;
             case 'PATCH':
-                // TODO: Support
-                this.ctx.log.warn(this.entityId);
+                this.HandleResponse(200, await this.sqlGenerator.GenerateAndExecute('UPDATE', this.entity, this.entityId, this.entityData));
                 break;
             case 'DELETE':
-                // TODO: Support
+                this.HandleResponse(204, await this.sqlGenerator.GenerateAndExecute('DELETE', this.entity, this.entityId, this.entityData));
                 break;
             default:
                 // TODO: Handle
