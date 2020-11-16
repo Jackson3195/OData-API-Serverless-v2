@@ -250,8 +250,8 @@ export default class MSSqlGenerator {
         // Determine SQL Type
         result.type = this.GetMSSQLType(metadata.Type);
 
-        // Handle Datetime
-        if (metadata.Type === 'datetime') {
+        // Handle Datetime - Null check to prevent value being set to 1970
+        if (metadata.Type === 'datetime' && result.value !== null) {
             result.value = new Date(result.value);
         }
         return result;

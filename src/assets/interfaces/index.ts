@@ -7,12 +7,12 @@ export interface ContextResponse {
     body: unknown;
 }
 
-export interface ResponseError {
+export interface ErrorResponse {
     context: unknown;
-    errors: ResponseErrorBody[];
+    errors: ErrorResponseBody[];
 }
 
-export interface ResponseErrorBody {
+export interface ErrorResponseBody {
     name: string;
     message: string;
     stack: string;

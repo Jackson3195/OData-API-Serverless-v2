@@ -1,9 +1,9 @@
-import { ContextResponse, JSTypes, ResponseErrorBody } from '@assets/interfaces';
+import { ContextResponse, JSTypes, ErrorResponseBody } from '@assets/interfaces';
 import { Context } from '@azure/functions';
 
 export function HandleError (ctx: Context, errors: Error[], payload: Record<string, any> = null): void {
     // Process errors
-    const errorDetails: ResponseErrorBody[] = [];
+    const errorDetails: ErrorResponseBody[] = [];
     let unauthorised = false;
     for (let e of errors) {
         // Determine if unauthorised has been see
@@ -24,6 +24,7 @@ export function HandleError (ctx: Context, errors: Error[], payload: Record<stri
     // If unauthorised; respond with 401 else 400 and details
     if (unauthorised) {
         ctx.res.status = 401;
+        ctx.res.body = null;
     } else {
         // Create response
         const response: ContextResponse = {
@@ -73,7 +74,7 @@ export function Sanitize<T> (input: unknown, hard = false): T {
         case 'object':
             return input as T;
         default:
-            return undefined;
+            return null;
     }
 }
 

@@ -49,6 +49,21 @@ const sqlToResult: Record<string, Partial<mssql.IResult<unknown>>> = {
                 'ObsoletedBy': 'API'
             }
         ] as mssql.IRecordSet<unknown>
+    },
+    '30f31aef111008fa17baef3aa00e574a': {
+        recordset: [
+            {
+                'Id': 1,
+                'Firstname': 'Jackson',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-15T20:20:12.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as mssql.IRecordSet<unknown>
     }
 };
 
