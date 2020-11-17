@@ -1,4 +1,4 @@
-import { GetFreshContext, MockContext, GetSQLData, GetUserSchema } from '@assets/tests';
+import { GetFreshContext, MockContext, GetSQLData, GetSchema } from '@assets/tests';
 import { ErrorResponse } from '@assets/interfaces';
 // Note: Import first so that the mocked class is used instead of the real one
 import MSSqlConnection from '@assets/connections/mssql';
@@ -14,7 +14,7 @@ describe('API Functionality', () => {
 
     // Note: Override GetSchema implementation so it returns a known schema
     beforeAll(() => {
-        jest.spyOn(MSSQLGenerator.prototype, 'GetSchema').mockImplementation((user) => GetUserSchema(user));
+        jest.spyOn(MSSQLGenerator.prototype, 'GetSchema').mockImplementation((user) => GetSchema(user));
     });
     afterAll(() => {
         jest.restoreAllMocks();
@@ -196,20 +196,64 @@ describe('API Functionality', () => {
 
     test('It should error if an unknown entity is provided', async () => {
         ctx.req.method = 'DELETE';
-        ctx.req.params['entity'] = 'Unknown';
+        ctx.req.params['entity'] = 'Random';
 
 
         await api(ctx, ctx.req);
 
         // Verify HTTP result
         expect(ctx.res.status).toBe(400);
-        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Entity not found');
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unknown Entity - Random');
     });
 
-    // //  TODO: Implement
-    // test('It should update a entity with a composite primary key', () => {
+    test('It should allow entity actions with a composite primary key', async () => {
+        ctx.req.params['entity'] = 'PropertyUsers';
+        ctx.req.params['id'] = '2-1';
+
+        // PATCH
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 'Some updated text'
+        };
+        // TODO: DELETE
+        // TODO: GET
+
+        await api(ctx, ctx.req);
+
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { PropertyId: 2, UserId: 1, Data1: 'Some updated text' } ]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        expect(sqlResults.sql).toBe('UPDATE dbo.[property_user] SET [property_user].[data1]=@property_userData1 OUTPUT INSERTED.propertyId AS PropertyId, INSERTED.userId AS UserId, INSERTED.data1 AS Data1 WHERE [property_user].[propertyId] = @property_userPropertyId AND [property_user].[userId] = @property_userUserId;');
+        expect(sqlResults.variables[0].value).toBe('Some updated text');
+        expect(sqlResults.variables[1].value).toBe('2');
+        expect(sqlResults.variables[2].value).toBe('1');
+    });
+
+    // // TODO: Implement
+    // test('It should handle error if composite primary is not passed in the correct format', () => {
     //     expect(false).toBe(true);
     // });
+
+    // //  TODO: Implement
+    // test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', () => {
+    //     expect(false).toBe(true);
+    // });
+
+    test('It should return database errors in the response', async () => {
+        ctx.req.method = 'POST';
+        ctx.req.params['entity'] = 'Properties';
+        ctx.req.body = {
+            'AddressLine1': '117 Test Road',
+            'City': 'London'
+        };
+
+        await api(ctx, ctx.req);
+
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Cannot insert the value NULL into column \'landlord\', table \'playground.dbo.property\'; column does not allow nulls. INSERT fails.');
+    });
 
 
 });

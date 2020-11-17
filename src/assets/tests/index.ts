@@ -57,7 +57,7 @@ export function GetFreshContext (): MockContext {
 
 // Get the SQL and Variables data of the mocked MSSqlConnection class
 export function GetSQLData (mocked: jest.Mock<typeof MSSqlConnection, any>): { sql: string; variables: QueryDBVariable[] } {
-    const executeMock = (mocked.mock.results[0].value as { execute: jest.Mock}).execute;
+    const executeMock = (mocked.mock.results[0].value as { Execute: jest.Mock}).Execute;
     const firstCall: any[] = executeMock.mock.calls[0];
     const result: { sql: string; variables: QueryDBVariable[] } = {
         sql: firstCall[0] as string,
@@ -66,8 +66,8 @@ export function GetSQLData (mocked: jest.Mock<typeof MSSqlConnection, any>): { s
     return result;
 }
 
-export function GetUserSchema (user: string): Schema {
-    if (user === 'Users') {
+export function GetSchema (entity: string): Schema {
+    if (entity === 'Users') {
         return {
             'Users': {
                 'Core': true,
@@ -157,22 +157,166 @@ export function GetUserSchema (user: string): Schema {
                             'Type': 'varchar',
                             'Size': 100
                         }
+                    }
+                }
+            }
+        };
+    } else if (entity === 'Properties') {
+        return {
+            'Properties': {
+                'Core': true,
+                'Owner': 'dbo',
+                'Tablename': 'property',
+                'PrimaryKey': [
+                    'Id'
+                ],
+                'Attributes': {
+                    'Id': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'id',
+                            'Type': 'int',
+                            'Size': 4
+                        }
                     },
-                    'Portfolio': {
+                    'LandlordId': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'landlord',
+                            'Type': 'int',
+                            'Size': 4
+                        }
+                    },
+                    'AddressLine1': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'addressline1',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'City': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'city',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'CreatedOn': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'createdOn',
+                            'Type': 'datetime',
+                            'Size': 8
+                        }
+                    },
+                    'LastUpdatedOn': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'lastUpdatedOn',
+                            'Type': 'datetime',
+                            'Size': 8
+                        }
+                    },
+                    'LastUpdatedBy': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'lastUpdatedBy',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'Obsolete': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'obsolete',
+                            'Type': 'bit',
+                            'Size': 1
+                        }
+                    },
+                    'ObsoletedOn': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'obsoletedOn',
+                            'Type': 'datetime',
+                            'Size': 8
+                        }
+                    },
+                    'ObsoletedBy': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'obsoletedBy',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'Landlord': {
                         'Type': 'Reference',
                         'Visible': 'External',
                         'Navigation': {
-                            'Context': 'Parent',
-                            'ToEntity': 'Properties',
-                            'ToField': 'LandlordId',
-                            'FromField': 'Id',
+                            'Context': 'Child',
+                            'ToEntity': 'Users',
+                            'ToField': 'Id',
+                            'FromField': 'LandlordId',
                             'Bespoke': false
                         }
                     }
                 }
             }
         };
-    } else {
-        throw new Error('Entity not found');
+    } else if (entity === 'PropertyUsers') {
+        return {
+            'PropertyUsers': {
+                'Owner': 'dbo',
+                'Core': true,
+                'Tablename': 'property_user',
+                'PrimaryKey': [
+                    'PropertyId',
+                    'UserId'
+                ],
+                'Attributes': {
+                    'PropertyId': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'propertyId',
+                            'Type': 'int',
+                            'Size': 4
+                        }
+                    },
+                    'UserId': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'userId',
+                            'Type': 'int',
+                            'Size': 4
+                        }
+                    },
+                    'Data1': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'data1',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    }
+                }
+            }
+        };
+    }else {
+        throw new Error(`Unknown Entity - ${entity}`);
     }
 }

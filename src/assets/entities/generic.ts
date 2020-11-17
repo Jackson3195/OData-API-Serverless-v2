@@ -50,10 +50,6 @@ export default class Generic {
             case 'DELETE':
                 this.HandleResponse(204, await this.sqlGenerator.GenerateAndExecute('DELETE', this.entity, this.entityId, this.entityData));
                 break;
-            default:
-                // TODO: Handle
-                // HandleError(this.ctx, [new Error('Unknown method provided to entity Generic')], this.entityData)
-                break;
         }
 
         // Overrideable actions to do after the entity is saved
@@ -77,9 +73,9 @@ export default class Generic {
                 'Content-Type': 'application/json; charset=utf-8',
                 'X-Pag-Page': 1,
                 'X-Pag-PageSize': this.pageSize,
-                'X-Pag-HasNextPage': (data && data.recordset) ? (data.recordset.length > this.pageSize) : null,
+                'X-Pag-HasNextPage': (data && data.recordset && data.recordset.length > this.pageSize),
             },
-            body: code !== 204 ? (data ? data.recordset : null) : null,
+            body: code !== 204 ? data.recordset : null,
         };
     }
 }

@@ -1,7 +1,7 @@
-import * as mssql from 'mssql';
+import { IResult, IRecordSet } from 'mssql';
 
 // Hash SQL Hash lookup to result
-const sqlToResult: Record<string, Partial<mssql.IResult<unknown>>> = {
+const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
     // Insert user test
     'de399dae44d6263c0296f535fd32bec5': {
         recordset: [
@@ -16,7 +16,7 @@ const sqlToResult: Record<string, Partial<mssql.IResult<unknown>>> = {
                 'ObsoletedOn': null,
                 'ObsoletedBy': null
             }
-        ] as mssql.IRecordSet<unknown>
+        ] as IRecordSet<unknown>
     },
     // Update user test
     '599c39e7dc9669fa0e43606999be73eb': {
@@ -32,7 +32,7 @@ const sqlToResult: Record<string, Partial<mssql.IResult<unknown>>> = {
                 'ObsoletedOn': null,
                 'ObsoletedBy': null
             }
-        ] as mssql.IRecordSet<unknown>
+        ] as IRecordSet<unknown>
     },
     // Obsolete user test
     '361941de31702b8057084a31b4dd9c07': {
@@ -48,7 +48,7 @@ const sqlToResult: Record<string, Partial<mssql.IResult<unknown>>> = {
                 'ObsoletedOn': '2020-11-15T20:20:12.000Z',
                 'ObsoletedBy': 'API'
             }
-        ] as mssql.IRecordSet<unknown>
+        ] as IRecordSet<unknown>
     },
     '30f31aef111008fa17baef3aa00e574a': {
         recordset: [
@@ -63,7 +63,16 @@ const sqlToResult: Record<string, Partial<mssql.IResult<unknown>>> = {
                 'ObsoletedOn': null,
                 'ObsoletedBy': null
             }
-        ] as mssql.IRecordSet<unknown>
+        ] as IRecordSet<unknown>
+    },
+    '1ccae16b644c1d4021795799830a9b6e': {
+        recordset: [
+            {
+                'PropertyId': 2,
+                'UserId': 1,
+                'Data1': 'Some updated text'
+            }
+        ] as IRecordSet<unknown>
     }
 };
 

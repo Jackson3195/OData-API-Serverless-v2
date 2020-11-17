@@ -2,7 +2,8 @@ import * as mssql from 'mssql';
 import * as crypto from 'crypto';
 import { QueryDBVariable } from '../mssql';
 import { Primitives } from '@assets/interfaces';
-import KnownSQL from '@assets/tests/knownSql';
+import KnownSQL from '@assets/tests/knownSqlGood';
+import BadSQL from '@assets/tests/knownSqlBad';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Override READONLY ConnectionPool Class for testing
@@ -15,9 +16,13 @@ mssql.ConnectionPool = jest.fn(() => ({
 // Mock the class and override the execute method so that we can take a peek at the data
 const mockMSSqlConnection = jest.fn().mockImplementation(() => {
     return {
-        execute: jest.fn((sql: string, variables: QueryDBVariable[]) => {
+        Execute: jest.fn((sql: string, variables: QueryDBVariable[]) => {
             const hash = GetHashFromInputs(sql, variables);
             console.log(hash);
+            // Determine if SQL exists in known errors
+            if (BadSQL[hash] !== undefined) {
+                throw BadSQL[hash];
+            }
             return KnownSQL[hash];
         }),
     };

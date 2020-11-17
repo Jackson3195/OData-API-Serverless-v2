@@ -12,7 +12,7 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
             if (AuthorisedRequest(ctx))  {
                 // Extract request information
                 if (req.params['entity']) {
-                    const entity = Captialize(Sanitize<string>(req.params['entity'], true).toLocaleLowerCase());
+                    const entity = Captialize(Sanitize<string>(req.params['entity'], true));
                     let entityId: string;
                     let entityBody: Record<string, Primitives> = null;
 

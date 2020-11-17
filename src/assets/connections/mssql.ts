@@ -41,7 +41,7 @@ export default class MSSqlConnection {
         });
     }
 
-    public execute<T> (sql: string, variables: QueryDBVariable[]): Promise<IResult<T>> {
+    public Execute<T> (sql: string, variables: QueryDBVariable[]): Promise<IResult<T>> {
         // Determine if sql has been passed in
         if (sql) {
             // Create return result
@@ -58,23 +58,19 @@ export default class MSSqlConnection {
                 // Prepare SQL
                 ps.prepare(sql, (err: Error) => {
                     if (err) {
-                        this.handleError(err);
-                        reject();
+                        reject(err);
                     } else {
-                    // Execute prepared statement
+                        // Execute prepared statement
                         ps.execute(preparedInputs, (err: Error, result: IProcedureResult<T>) => {
-                        // Disconnect from pool regardless
+                            // Disconnect from pool regardless
                             ps.unprepare((err: Error) => {
                                 if (err) {
-                                    this.handleError(err);
-                                    reject();
-                                    return;
+                                    reject(err);
                                 }
                             });
                             // Return error otherwise data
                             if (err) {
-                                this.handleError(err);
-                                reject();
+                                reject(err);
                             } else {
                                 resolve(result);
                             }
@@ -83,14 +79,10 @@ export default class MSSqlConnection {
                 });
             });
         } else {
-            this.handleError(new Error('SQL field required'));
-            return Promise.reject();
+            return Promise.reject(new Error('SQL field required'));
         }
     }
 
-    private handleError (err: Error): void {
-        this.ctx.log.error(err);
-    }
 }
 
 export interface QueryDBVariable {
