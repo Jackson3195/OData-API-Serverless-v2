@@ -42,45 +42,40 @@ export default class MSSqlConnection {
     }
 
     public Execute<T> (sql: string, variables: QueryDBVariable[]): Promise<IResult<T>> {
-        // Determine if sql has been passed in
-        if (sql) {
-            // Create return result
-            return new Promise((resolve, reject) => {
-                // Create new prepared statement
-                let preparedInputs: Record<string, (ISqlTypeFactory | ISqlType)> = {};
-                const ps: PreparedStatement = new PreparedStatement(this.pool);
-                // Deal with inputs
-                for (const input of variables) {
-                    // Create prepare input parameter object
-                    ps.input(input.name, input.type);
-                    preparedInputs[input.name] = input.value;
-                }
-                // Prepare SQL
-                ps.prepare(sql, (err: Error) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        // Execute prepared statement
-                        ps.execute(preparedInputs, (err: Error, result: IProcedureResult<T>) => {
-                            // Disconnect from pool regardless
-                            ps.unprepare((err: Error) => {
-                                if (err) {
-                                    reject(err);
-                                }
-                            });
-                            // Return error otherwise data
+        // Create return result
+        return new Promise((resolve, reject) => {
+            // Create new prepared statement
+            let preparedInputs: Record<string, (ISqlTypeFactory | ISqlType)> = {};
+            const ps: PreparedStatement = new PreparedStatement(this.pool);
+            // Deal with inputs
+            for (const input of variables) {
+                // Create prepare input parameter object
+                ps.input(input.name, input.type);
+                preparedInputs[input.name] = input.value;
+            }
+            // Prepare SQL
+            ps.prepare(sql, (err: Error) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Execute prepared statement
+                    ps.execute(preparedInputs, (err: Error, result: IProcedureResult<T>) => {
+                        // Disconnect from pool regardless
+                        ps.unprepare((err: Error) => {
                             if (err) {
                                 reject(err);
-                            } else {
-                                resolve(result);
                             }
                         });
-                    }
-                });
+                        // Return error otherwise data
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(result);
+                        }
+                    });
+                }
             });
-        } else {
-            return Promise.reject(new Error('SQL field required'));
-        }
+        });
     }
 
 }

@@ -15,6 +15,7 @@ export default class Generic {
     private entityData: Record<string, Primitives>;
 
     private sqlGenerator: MSSqlGenerator;
+    // TODO: Potentially make it protected for reuse when the entity is extended
     private sqlDb: MSSqlConnection;
 
     // Constructor

@@ -4,7 +4,7 @@ import { Sanitize, Captialize, HandleError } from '@assets/utils';
 import { Primitives } from '@assets/interfaces';
 import { FieldAttribute, ReferenceAttribute, Schema, SQLMetadata } from '@assets/interfaces/schema';
 import MSSQLConnection from '@assets/connections/mssql';
-import * as mssql from 'mssql';
+import { IResult, VarChar, Int, DateTime, Bit } from 'mssql';
 import * as fs from 'fs';
 
 /**
@@ -35,7 +35,7 @@ export default class MSSqlGenerator {
         this.local = process.env['AzureWebJobsStorage'] === 'UseDevelopmentStorage=true';
     }
 
-    public GenerateAndExecute (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): Promise<mssql.IResult<unknown>> {
+    public GenerateAndExecute (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): Promise<IResult<unknown>> {
         const inputValues = this.GenerateStatement(type, entity, entityId, attributes);
         return this.sqlDb.Execute(inputValues.sql, inputValues.variables);
     }
@@ -184,11 +184,11 @@ export default class MSSqlGenerator {
         } else {
             // If updated determine if body contains the obsolete attribute
             if (entity['Attributes']['Obsolete'] !== undefined) {
-                // Check if deleted - Initialise the attributes object (More of DELETE request since it accepts no payload)
+                // Check if deleted - Initialise the attributes object (More for DELETE request since it accepts no payload)
                 if (!attributes) {
                     attributes = {};
                 }
-                // If the request is of type deleted; add the payload in ourselves to state its been deleted
+                // If the request is of type delete; add the payload in ourselves to state its been deleted
                 if (deleted) {
                     attributes['Obsolete'] = true;
                 }
@@ -220,7 +220,6 @@ export default class MSSqlGenerator {
     }
 
     private GenerateQueryDBVariables (table: string, metadata: SQLMetadata, value: Primitives) {
-        // Determine if special value
         let sanitizedValue: Primitives = Sanitize(value);
 
         // Create template
@@ -244,16 +243,16 @@ export default class MSSqlGenerator {
         // Determine type
         switch (type) {
             case 'varchar':
-                result = mssql.VarChar;
+                result = VarChar;
                 break;
             case 'int':
-                result = mssql.Int;
+                result = Int;
                 break;
             case 'datetime':
-                result = mssql.DateTime;
+                result = DateTime;
                 break;
             case 'bit':
-                result = mssql.Bit;
+                result = Bit;
                 break;
             default:
                 this.errors.push(new Error(`GetMSSQLType - Unhandled datatype provided - ${type}`));
@@ -271,8 +270,7 @@ export default class MSSqlGenerator {
     }
 
     // Note: Public for testing purposes
-    public GetSchema (entity: string): any {
-        let result: Schema;
+    public GetSchema (entity: string): Schema {
         if (this.local) {
             // Check if environment variable is set
             let path: string;
@@ -286,7 +284,8 @@ export default class MSSqlGenerator {
             if (fs.existsSync(file)) {
                 try {
                     const data: string = fs.readFileSync(file, 'utf-8');
-                    result = JSON.parse(data) as Schema;
+                    const result = JSON.parse(data) as Schema;
+                    return result;
                 } catch (e) {
                     throw e;
                 }
@@ -296,7 +295,6 @@ export default class MSSqlGenerator {
         } else {
             throw new Error('Feature not yet available');
         }
-        return result;
     }
 
 }

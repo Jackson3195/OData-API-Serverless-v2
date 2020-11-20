@@ -43,4 +43,5 @@ function GetHashFromInputs (sql: string, variables: QueryDBVariable[]) {
     }
     return GetMD5Hash(sqlHash);
 }
+
 export default mockMSSqlConnection;
