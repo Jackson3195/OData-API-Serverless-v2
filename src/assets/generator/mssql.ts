@@ -6,7 +6,6 @@ import { FieldAttribute, ReferenceAttribute, Schema, SQLMetadata } from '@assets
 import MSSQLConnection from '@assets/connections/mssql';
 import { IResult, VarChar, Int, DateTime, Bit } from 'mssql';
 import * as fs from 'fs';
-
 /**
  * https://github.com/techniq/odata-query/blob/master/src/index.ts
  */
@@ -37,7 +36,10 @@ export default class MSSqlGenerator {
 
     public GenerateAndExecute (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): Promise<IResult<unknown>> {
         const inputValues = this.GenerateStatement(type, entity, entityId, attributes);
-        return this.sqlDb.Execute(inputValues.sql, inputValues.variables);
+        if (inputValues) {
+            return this.sqlDb.Execute(inputValues.sql, inputValues.variables);
+        }
+        return null;
     }
 
     private GenerateStatement (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): SQLInputObject {
@@ -105,28 +107,24 @@ export default class MSSqlGenerator {
                                     .replace(regexColumn, (`[${ts.Tablename}].[${metadata.SQL.Name}]`))
                                     .replace(regexValue, `@${variable.name}`);
                                 // Add PKs if last property
-                                for (let y = 0; y < ts.PrimaryKey.length; y++) {
-                                    const primaryKey: string = ts.PrimaryKey[y];
-                                    const primaryKeyAttribute: FieldAttribute = ts.Attributes[primaryKey] as FieldAttribute;
-                                    const primaryKeyValues: string[] | number[] = this.GetPrimaryKey(entityId);
-                                    if (primaryKeyValues.length === ts.PrimaryKey.length) {
-                                        if (primaryKeyValues[y]) {
-                                            // Handle composite primary keys
-                                            if (y < (ts.PrimaryKey.length - 1)) {
-                                                // Support Composite Primary Keys
-                                                sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey} AND %ENTITY%`));
-                                            } else {
-                                                sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey}`));
-                                            }
-                                            // Generate PK variable
-                                            const pkVariable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, primaryKeyAttribute.SQL, primaryKeyValues[y]);
-                                            variables.push(pkVariable);
+                                const primaryKeyValues: string[] | number[] = this.GetPrimaryKey(entityId);
+                                if (primaryKeyValues.length === ts.PrimaryKey.length) {
+                                    for (let y = 0; y < ts.PrimaryKey.length; y++) {
+                                        const primaryKey: string = ts.PrimaryKey[y];
+                                        const primaryKeyAttribute: FieldAttribute = ts.Attributes[primaryKey] as FieldAttribute;
+                                        // Handle composite primary keys
+                                        if (y < (ts.PrimaryKey.length - 1)) {
+                                            // Support Composite Primary Keys
+                                            sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey} AND %ENTITY%`));
                                         } else {
-                                            this.errors.push(new Error('Invalid primary key: ' + (primaryKeyValues[y] ? primaryKeyValues[y].toString() : null)));
+                                            sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey}`));
                                         }
-                                    } else {
-                                        this.errors.push(new Error(`${entity} missing primary key`));
+                                        // Generate PK variable
+                                        const pkVariable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, primaryKeyAttribute.SQL, primaryKeyValues[y]);
+                                        variables.push(pkVariable);
                                     }
+                                } else {
+                                    this.errors.push(new Error(`${entity} missing primary key`));
                                 }
                             }
                         }
@@ -264,7 +262,8 @@ export default class MSSqlGenerator {
 
     private GetPrimaryKey (input: string | number): string[] | number[] {
         if (typeof input === 'string') {
-            return input.split('-');
+            // Remove any null or empty strings
+            return input.split('-').filter((value) => value);
         }
         return [input];
     }

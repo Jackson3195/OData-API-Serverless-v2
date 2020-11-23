@@ -1,5 +1,5 @@
 import * as mssql from 'mssql';
-import * as crypto from 'crypto';
+import { createHash } from 'crypto';
 import { QueryDBVariable } from '../mssql';
 import { Primitives } from '@assets/interfaces';
 import KnownSQL from '@assets/tests/knownSqlGood';
@@ -18,7 +18,7 @@ const mockMSSqlConnection = jest.fn().mockImplementation(() => {
     return {
         Execute: jest.fn((sql: string, variables: QueryDBVariable[]) => {
             const hash = GetHashFromInputs(sql, variables);
-            console.log(hash);
+            // console.log(hash);
             // Determine if SQL exists in known errors
             if (BadSQL[hash] !== undefined) {
                 throw BadSQL[hash];
@@ -29,7 +29,7 @@ const mockMSSqlConnection = jest.fn().mockImplementation(() => {
 });
 
 function GetMD5Hash (value: string) {
-    return crypto.createHash('md5').update(value).digest('hex');
+    return createHash('md5').update(value).digest('hex');
 }
 
 function GetHashFromInputs (sql: string, variables: QueryDBVariable[]) {

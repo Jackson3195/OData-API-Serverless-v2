@@ -231,8 +231,29 @@ describe('API Functionality', () => {
         expect(sqlResults.variables[2].value).toBe('1');
     });
 
-    // // TODO: Implement
-    // test('It should handle error if composite primary is not passed in the correct format', () => {
+    test('It should handle error if composite primary is not passed in the correct format', async () => {
+
+        ctx.req.params['entity'] = 'PropertyUsers';
+        ctx.req.params['id'] = '2-';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 'Some updated text'
+        };
+
+        await api(ctx, ctx.req);
+
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('PropertyUsers missing primary key');
+    });
+
+    // //  TODO: Implement
+    // test('It should not be able to amend an internal field', () => {
+    //     expect(false).toBe(true);
+    // });
+
+    // //  TODO: Implement
+    // test('It should error if the unknown fields are requested to be amended', () => {
     //     expect(false).toBe(true);
     // });
 

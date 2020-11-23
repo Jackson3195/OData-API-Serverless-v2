@@ -10,6 +10,7 @@ export default class Generic {
     private method: HttpMethod;
     private pageSize = 100;
 
+    // TODO: Potentially make it protected for reuse when the entity is extended
     private entity: string;
     private entityId: string;
     private entityData: Record<string, Primitives>;
@@ -68,15 +69,17 @@ export default class Generic {
     }
 
     private HandleResponse (code: number, data: IResult<unknown>) {
-        this.ctx.res = {
-            status: code,
-            headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'X-Pag-Page': 1,
-                'X-Pag-PageSize': this.pageSize,
-                'X-Pag-HasNextPage': (data && data.recordset && data.recordset.length > this.pageSize),
-            },
-            body: code !== 204 ? data.recordset : null,
-        };
+        if (data) {
+            this.ctx.res = {
+                status: code,
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'X-Pag-Page': 1,
+                    'X-Pag-PageSize': this.pageSize,
+                    'X-Pag-HasNextPage': (data.recordset && data.recordset.length > this.pageSize),
+                },
+                body: code !== 204 ? data.recordset : null,
+            };
+        }
     }
 }

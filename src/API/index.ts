@@ -10,8 +10,9 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
         // Global try/catch incase something fails
         try {
             if (AuthorisedRequest(ctx))  {
-                // Extract request information
+                // Extract request information - URL errors with a 404 if the entity is not specified
                 if (req.params['entity']) {
+                    // Populate the entity
                     const entity = Captialize(Sanitize<string>(req.params['entity'], true));
                     let entityId: string;
                     let entityBody: Record<string, Primitives> = null;
@@ -41,7 +42,6 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
                     }
 
                     // TODO: Handle bespoke entity logic
-                    // Determine if entity is generic or bespoke entity
                     let targetEntity = new Entities['Generic'](ctx, entity, entityId, entityBody);
                     await targetEntity.HandleRequest();
                 } else {

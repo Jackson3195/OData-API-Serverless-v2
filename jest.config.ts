@@ -5,7 +5,7 @@ const moduleNameMapper = require("tsconfig-paths-jest")(tsConfig)
 const config: Config.InitialOptions = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  collectCoverage: false,
+  collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}'
   ],
