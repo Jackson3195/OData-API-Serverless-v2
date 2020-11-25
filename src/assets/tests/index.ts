@@ -157,6 +157,17 @@ export function GetSchema (entity: string): Schema {
                             'Type': 'varchar',
                             'Size': 100
                         }
+                    },
+                    'Portfolio': {
+                        'Type': 'Reference',
+                        'Visible': 'External',
+                        'Navigation': {
+                            'Context': 'Parent',
+                            'ToEntity': 'Properties',
+                            'ToField': 'LandlordId',
+                            'FromField': 'Id',
+                            'Bespoke': false
+                        }
                     }
                 }
             }
@@ -316,7 +327,110 @@ export function GetSchema (entity: string): Schema {
                 }
             }
         };
-    }else {
+    } else if (entity === 'UsersBroken') {
+        return {
+            'UsersBroken': {
+                'Core': true,
+                'Owner': 'dbo',
+                'Tablename': 'user',
+                'PrimaryKey': ['Id'],
+                'Attributes': {
+                    'Id': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'id',
+                            'Type': 'int',
+                            'Size': 4
+                        }
+                    },
+                    'Firstname': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'firstname',
+                            'Type': 'unknown',
+                            'Size': 100
+                        }
+                    },
+                    'Surname': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'surname',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'CreatedOn': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'createdOn',
+                            'Type': 'datetime',
+                            'Size': 8
+                        }
+                    },
+                    'LastUpdatedOn': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'lastUpdatedOn',
+                            'Type': 'datetime',
+                            'Size': 8
+                        }
+                    },
+                    'LastUpdatedBy': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'lastUpdatedBy',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'Obsolete': {
+                        'Type': 'Field',
+                        'Visible': 'External',
+                        'SQL': {
+                            'Name': 'obsolete',
+                            'Type': 'bit',
+                            'Size': 1
+                        }
+                    },
+                    'ObsoletedOn': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'obsoletedOn',
+                            'Type': 'datetime',
+                            'Size': 8
+                        }
+                    },
+                    'ObsoletedBy': {
+                        'Type': 'Field',
+                        'Visible': 'Internal',
+                        'SQL': {
+                            'Name': 'obsoletedBy',
+                            'Type': 'varchar',
+                            'Size': 100
+                        }
+                    },
+                    'Portfolio': {
+                        'Type': 'Reference',
+                        'Visible': 'External',
+                        'Navigation': {
+                            'Context': 'Parent',
+                            'ToEntity': 'Properties',
+                            'ToField': 'LandlordId',
+                            'FromField': 'Id',
+                            'Bespoke': false
+                        }
+                    }
+                }
+            }
+        };
+    } else {
         throw new Error(`Unknown Entity - ${entity}`);
     }
 }

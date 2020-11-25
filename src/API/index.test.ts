@@ -232,7 +232,6 @@ describe('API Functionality', () => {
     });
 
     test('It should handle error if composite primary is not passed in the correct format', async () => {
-
         ctx.req.params['entity'] = 'PropertyUsers';
         ctx.req.params['id'] = '2-';
 
@@ -247,19 +246,63 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('PropertyUsers missing primary key');
     });
 
-    // //  TODO: Implement
-    // test('It should not be able to amend an internal field', () => {
-    //     expect(false).toBe(true);
-    // });
+    test('It should error when a reference field is attempted to be amended', async () => {
+        ctx.req.method = 'POST';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.body = {
+            Portfolio: 'Jackson',
+            Surname: 'Jacob',
+            CreatedOn: new Date().toISOString(),
+        };
 
-    // //  TODO: Implement
-    // test('It should error if the unknown fields are requested to be amended', () => {
-    //     expect(false).toBe(true);
-    // });
+        await api(ctx, ctx.req);
 
-    // //  TODO: Implement
-    // test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', () => {
-    //     expect(false).toBe(true);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Portfolio is not a field that can be specified');
+    });
+
+    test('It should error if the unknown fields are requested to be amended', async () => {
+        ctx.req.params['entity'] = 'PropertyUsers';
+        ctx.req.params['id'] = '2-1';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Unknown': true
+        };
+
+        await api(ctx, ctx.req);
+
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Property [Unknown] does not exist on entity [PropertyUsers]');
+    });
+
+    test('It should error if an unsupported field type is referenced', async () => {
+        ctx.req.params['entity'] = 'UsersBroken';
+        ctx.req.params['id'] = '2';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Firstname': 'Jackson',
+            'Surname': 'Spectre',
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unhandled datatype provided - unknown');
+    });
+
+    // test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', async () => {
+    //     ctx.req.params['entity'] = 'PropertyUsers';
+    //     ctx.req.params['id'] = '2-1';
+
+    //     ctx.req.method = 'PATCH';
+    //     ctx.req.body = {
+    //         'Data2': 2147483641
+    //     };
+
+    //     await api(ctx, ctx.req);
+    //     console.log(ctx.res.body);
+    //     expect(ctx.res.status).toBe(200);
     // });
 
     test('It should return database errors in the response', async () => {
