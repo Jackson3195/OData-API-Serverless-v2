@@ -14,8 +14,7 @@
     "baseUrl": ".",
     "sourceMap": true,
     "paths": {
-      "@assets/*": [ "src/assets/*" ],
-      "@testing/*": [ "src/assets/tests/*" ]
+      "@assets/*": [ "src/assets/*" ]
     }
   },
   "include": [

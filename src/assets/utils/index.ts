@@ -1,29 +1,32 @@
-import { ContextResponse, JSTypes, ResponseErrorBody } from '@assets/interfaces';
+import { ContextResponse, JSTypes, ErrorResponseBody } from '@assets/interfaces';
 import { Context } from '@azure/functions';
 
 export function HandleError (ctx: Context, errors: Error[], payload: Record<string, any> = null): void {
     // Process errors
-    const errorDetails: ResponseErrorBody[] = [];
+    const errorDetails: ErrorResponseBody[] = [];
     let unauthorised = false;
     for (let e of errors) {
-        // Determine if unauthorised has been see
-        if (e.message === 'Unauthorised') {
-            unauthorised = true;
-            break;
+        if (e) {
+            // Determine if unauthorised has been see
+            if (e.message === 'Unauthorised') {
+                unauthorised = true;
+                break;
+            }
+            // Continue with errors
+            errorDetails.push(
+                {
+                    name: e.name || 'No error name provided',
+                    message: e.message || 'No error message provided',
+                    stack: e.stack || 'No error stack provided',
+                },
+            );
+            ctx.log.error(e);
         }
-        // Continue with errors
-        errorDetails.push(
-            {
-                name: e.name || 'No error name provided',
-                message: e.message || 'No error message provided',
-                stack: e.stack || 'No error stack provided',
-            },
-        );
-        ctx.log.error(e);
     }
     // If unauthorised; respond with 401 else 400 and details
     if (unauthorised) {
         ctx.res.status = 401;
+        ctx.res.body = null;
     } else {
         // Create response
         const response: ContextResponse = {
@@ -70,16 +73,12 @@ export function Sanitize<T> (input: unknown, hard = false): T {
         case 'bigint':
         case 'boolean':
         case 'object':
-            return input  as T;
+            return input as T;
         default:
-            return undefined;
+            return null;
     }
 }
 
 export function Captialize (input: string): string {
-    if (input && typeof input === 'string') {
-        return input.charAt(0).toUpperCase() + input.slice(1);
-    } else {
-        return null;
-    }
+    return input.charAt(0).toUpperCase() + input.slice(1);
 }

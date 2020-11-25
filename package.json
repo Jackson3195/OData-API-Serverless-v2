@@ -13,7 +13,7 @@
     "watch:dev": "tsc-watch -P tsconfig.build.json --onSuccess 'ef-tspm -s -c ./tsconfig.build.json'",
     "watch:test": "jest --config jest.config.ts --watch",
     "test": "jest --config jest.config.ts --no-cache",
-    "test:1": "jest -t mssql",
+    "test:1": "jest -t index",
     "lint": "eslint -c .eslintrc.js --ext .ts src/"
   },
   "author": "Jackson J Jacob",

@@ -1,0 +1,112 @@
+{
+    "Properties": {
+      "Owner": "dbo",
+      "Tablename": "property",
+      "PrimaryKey": [
+        "Id"
+      ],
+      "Attributes": {
+        "Id": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "id",
+            "Type": "int",
+            "Size": 4
+          }
+        },
+        "LandlordId": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "landlord",
+            "Type": "int",
+            "Size": 4
+          }
+        },
+        "AddressLine1": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "addressline1",
+            "Type": "varchar",
+            "Size": 100
+          }
+        },
+        "City": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "city",
+            "Type": "varchar",
+            "Size": 100
+          }
+        },
+        "CreatedOn": {
+          "Type": "Field",
+          "Visible": "Internal",
+          "SQL": {
+            "Name": "createdOn",
+            "Type": "datetime",
+            "Size": 8
+          }
+        },
+        "LastUpdatedOn": {
+          "Type": "Field",
+          "Visible": "Internal",
+          "SQL": {
+            "Name": "lastUpdatedOn",
+            "Type": "datetime",
+            "Size": 8
+          }
+        },
+        "LastUpdatedBy": {
+          "Type": "Field",
+          "Visible": "Internal",
+          "SQL": {
+            "Name": "lastUpdatedBy",
+            "Type": "varchar",
+            "Size": 100
+          }
+        },
+        "Obsolete": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "obsolete",
+            "Type": "bit",
+            "Size": 1
+          }
+        },
+        "ObsoletedOn": {
+          "Type": "Field",
+          "Visible": "Internal",
+          "SQL": {
+            "Name": "obsoletedOn",
+            "Type": "datetime",
+            "Size": 8
+          }
+        },
+        "ObsoletedBy": {
+          "Type": "Field",
+          "Visible": "Internal",
+          "SQL": {
+            "Name": "obsoletedBy",
+            "Type": "varchar",
+            "Size": 100
+          }
+        },
+        "Landlord": {
+          "Type": "Reference",
+          "Visible": "External",
+          "Navigation": {
+            "Context": "Child",
+            "ToEntity": "Users",
+            "ToField": "Id",
+            "FromField": "LandlordId",
+            "Bespoke": false
+          }
+        }
+      }
+    }
+  }

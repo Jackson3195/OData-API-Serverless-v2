@@ -4,7 +4,6 @@
 import { ConnectionPool, PreparedStatement } from 'mssql';
 import { config, ISqlTypeFactoryWithLength, ISqlTypeWithLength, ISqlTypeFactoryWithNoParams, ISqlTypeWithPrecisionScale, IResult, IProcedureResult, ISqlType, ISqlTypeFactory } from 'mssql';
 import { Context } from '@azure/functions';
-import { HandleError } from '@assets/mixins';
 
 const mssqlConfig: config = {
     user: process.env['AzureMSSQLUser'],
@@ -14,7 +13,7 @@ const mssqlConfig: config = {
     connectionTimeout: 10000,
     parseJSON: true,
     pool: {
-        max: 1,
+        max: 2,
         min: 1,
         acquireTimeoutMillis: 30000,
         idleTimeoutMillis: 10000,
@@ -25,14 +24,14 @@ const mssqlConfig: config = {
     },
 };
 
-// Create connection
-export const pool: ConnectionPool = new ConnectionPool(mssqlConfig);
-pool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connection Pool',  err); }});
+// Create connection pool (Static to be shared across all instances)
+const staticPool: ConnectionPool = new ConnectionPool(mssqlConfig);
+staticPool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connection Pool',  err); }});
 
-export default class MSSqlDB {
+export default class MSSqlConnection {
     private ctx: Context;
     // Public for testing purposes
-    public pool: ConnectionPool = pool;
+    private pool: ConnectionPool = staticPool;
 
     constructor (context: Context) {
         this.ctx = context;
@@ -42,56 +41,43 @@ export default class MSSqlDB {
         });
     }
 
-    public query<T> (sql: string, variables: QueryDBVariable[]): Promise<IResult<T>> {
-        // Determine if sql has been passed in
-        if (sql) {
-            // Create return result
-            return new Promise((resolve, reject) => {
+    public Execute<T> (sql: string, variables: QueryDBVariable[]): Promise<IResult<T>> {
+        // Create return result
+        return new Promise((resolve, reject) => {
             // Create new prepared statement
-                let preparedInputs: Record<string, (ISqlTypeFactory | ISqlType)> = {};
-                const ps: PreparedStatement = new PreparedStatement(this.pool);
-                // Deal with inputs
-                for (const input of variables) {
+            let preparedInputs: Record<string, (ISqlTypeFactory | ISqlType)> = {};
+            const ps: PreparedStatement = new PreparedStatement(this.pool);
+            // Deal with inputs
+            for (const input of variables) {
                 // Create prepare input parameter object
-                    ps.input(input.name, input.type);
-                    preparedInputs[input.name] = input.value;
-                }
-                // Prepare SQL
-                ps.prepare(sql, (err: Error) => {
-                    if (err) {
-                        this.handleError(err);
-                        reject();
-                    } else {
+                ps.input(input.name, input.type);
+                preparedInputs[input.name] = input.value;
+            }
+            // Prepare SQL
+            ps.prepare(sql, (err: Error) => {
+                if (err) {
+                    reject(err);
+                } else {
                     // Execute prepared statement
-                        ps.execute(preparedInputs, (err: Error, result: IProcedureResult<T>) => {
+                    ps.execute(preparedInputs, (err: Error, result: IProcedureResult<T>) => {
                         // Disconnect from pool regardless
-                            ps.unprepare((err: Error) => {
-                                if (err) {
-                                    this.handleError(err);
-                                    reject();
-                                    return;
-                                }
-                            });
-                            // Return error otherwise data
+                        ps.unprepare((err: Error) => {
                             if (err) {
-                                this.handleError(err);
-                                reject();
-                            } else {
-                                resolve(result);
+                                reject(err);
                             }
                         });
-                    }
-                });
+                        // Return error otherwise data
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(result);
+                        }
+                    });
+                }
             });
-        } else {
-            this.handleError(new Error('SQL field required'));
-            return Promise.reject();
-        }
+        });
     }
 
-    public handleError (err: Error): void {
-        HandleError(this.ctx, [err]);
-    }
 }
 
 export interface QueryDBVariable {

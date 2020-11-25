@@ -1,6 +1,6 @@
-import { Context, HttpMethod, HttpRequest, AzureFunction } from '@azure/functions';
-import { Captialize, HandleError, Sanitize } from '@assets/mixins';
 import { Primitives } from '@assets/interfaces';
+import { Captialize, HandleError, Sanitize } from '@assets/utils';
+import { Context, HttpRequest, AzureFunction, HttpMethod } from '@azure/functions';
 import Entities from '@assets/entities';
 
 const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
@@ -10,9 +10,10 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
         // Global try/catch incase something fails
         try {
             if (AuthorisedRequest(ctx))  {
-                // Extract request information
+                // Extract request information - URL errors with a 404 if the entity is not specified
                 if (req.params['entity']) {
-                    const entity = Captialize(Sanitize<string>(req.params['entity'], true).toLocaleLowerCase());
+                    // Populate the entity
+                    const entity = Captialize(Sanitize<string>(req.params['entity'], true));
                     let entityId: string;
                     let entityBody: Record<string, Primitives> = null;
 
@@ -40,7 +41,7 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
                         }
                     }
 
-                    // Determine if entity is generic or bespoke entity
+                    // TODO: Handle bespoke entity logic
                     let targetEntity = new Entities['Generic'](ctx, entity, entityId, entityBody);
                     await targetEntity.HandleRequest();
                 } else {
@@ -72,4 +73,3 @@ function AuthorisedRequest (ctx: Context): boolean {
         return false;
     }
 }
-

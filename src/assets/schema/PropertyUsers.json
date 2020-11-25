@@ -1,0 +1,39 @@
+{
+    "PropertyUsers": {
+      "Owner": "dbo",
+      "Tablename": "property_user",
+      "PrimaryKey": [
+        "PropertyId",
+        "UserId"
+      ],
+      "Attributes": {
+        "PropertyId": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "propertyId",
+            "Type": "int",
+            "Size": 4
+          }
+        },
+        "UserId": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "userId",
+            "Type": "int",
+            "Size": 4
+          }
+        },
+        "Data1": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "data1",
+            "Type": "varchar",
+            "Size": 100
+          }
+        }
+      }
+    }
+  }

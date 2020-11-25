@@ -1,4 +1,4 @@
-import Generic from './Generic';
+import Generic from './generic';
 
 const repository: Record<string, typeof Generic> = {
     Generic
