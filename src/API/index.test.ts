@@ -1,20 +1,22 @@
-import { GetFreshContext, MockContext, GetSQLData, GetSchema } from '@assets/tests';
+import { GetFreshContext, MockContext, GetSQLData } from '@assets/tests';
 import { ErrorResponse } from '@assets/interfaces';
 // Note: Import first so that the mocked class is used instead of the real one
 import MSSqlConnection from '@assets/connections/mssql';
 jest.mock('@assets/connections/mssql');
 const mockedMSSqlConnection = MSSqlConnection as unknown as jest.Mock<typeof MSSqlConnection>;
-import MSSQLGenerator from '@assets/generator/mssql';
+// Note: Mock the fs module; invoke the mock so that jest knows to use the mocked version
+jest.mock('fs');
 // Note: Import last so that any other mock actions takes effect first
 import api from './index';
-
 describe('API Functionality', () => {
 
     let ctx: MockContext;
 
     // Note: Override GetSchema implementation so it returns a known schema
     beforeAll(() => {
-        jest.spyOn(MSSQLGenerator.prototype, 'GetSchema').mockImplementation((user) => GetSchema(user));
+        // Set env variables to be used throughout test suite
+        process.env['SchemaDirectory'] = '/';
+        process.env['AzureWebJobsStorage'] = 'UseDevelopmentStorage=true';
     });
     afterAll(() => {
         jest.restoreAllMocks();
@@ -164,7 +166,6 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('EntityId required');
         expect(deleteCtx.res.status).toBe(400);
         expect((deleteCtx.res.body as ErrorResponse).errors[0].message).toBe('EntityId required');
-
     });
 
     test('It should error when the entity body is not provided', async () => {

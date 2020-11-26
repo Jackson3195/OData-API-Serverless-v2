@@ -18,7 +18,7 @@ const mockMSSqlConnection = jest.fn().mockImplementation(() => {
     return {
         Execute: jest.fn((sql: string, variables: QueryDBVariable[]) => {
             const hash = GetHashFromInputs(sql, variables);
-            console.log(hash);
+            // console.log(hash);
             // Determine if SQL exists in known errors
             if (BadSQL[hash] !== undefined) {
                 throw BadSQL[hash];

@@ -272,8 +272,7 @@ export default class MSSQLGenerator {
         return input.split('-').filter((value) => value);
     }
 
-    // Note: Public for testing purposes
-    public GetSchema (entity: string): Schema {
+    private GetSchema (entity: string): Schema {
         if (this.local) {
             // Check if environment variable is set
             let path: string;
