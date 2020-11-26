@@ -18,7 +18,7 @@ const mockMSSqlConnection = jest.fn().mockImplementation(() => {
     return {
         Execute: jest.fn((sql: string, variables: QueryDBVariable[]) => {
             const hash = GetHashFromInputs(sql, variables);
-            // console.log(hash);
+            console.log(hash);
             // Determine if SQL exists in known errors
             if (BadSQL[hash] !== undefined) {
                 throw BadSQL[hash];
@@ -36,7 +36,7 @@ function GetHashFromInputs (sql: string, variables: QueryDBVariable[]) {
     let sqlHash = GetMD5Hash(sql);
     for (const variable of variables) {
         // Ignore dates - As this can be based on runtime timestamps which causes the hash to change
-        if (new Date(variable.value).toString() === 'Invalid Date') {
+        if (variable.value !== null && variable.jsType !== 'date') {
             let value = (variable.value as Primitives).toString();
             sqlHash += GetMD5Hash(value);
         }

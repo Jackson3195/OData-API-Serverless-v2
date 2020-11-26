@@ -17,6 +17,11 @@ export interface SQLInputObject {
     variables: QueryDBVariable[];
 }
 
+interface MSSQLTypeResult {
+    type: SQLInputs;
+    jsType: QueryDBVariable['jsType'];
+}
+
 export default class MSSQLGenerator {
     // Class variables
     private ctx: Context;
@@ -46,7 +51,6 @@ export default class MSSQLGenerator {
         // Get the target schema
         const schema: Schema = this.GetSchema(entity);
         const ts: Schema['entity'] = schema[entity];
-        this.ctx.log.warn(ts);
         let result: SQLInputObject;
         // If we have a valid entity
         // Construct table name
@@ -219,10 +223,13 @@ export default class MSSQLGenerator {
         let result: QueryDBVariable = {
             name: (table + Captialize(metadata.Name)),
             type: null,
+            jsType: null,
             value: sanitizedValue,
         };
         // Determine SQL Type
-        result.type = this.GetMSSQLType(metadata.Type);
+        const typeResult = this.GetMSSQLType(metadata.Type);
+        result.type = typeResult.type;
+        result.jsType = typeResult.jsType;
 
         // Handle Datetime - Null check to prevent value being set to 1970
         if (metadata.Type === 'datetime' && result.value !== null) {
@@ -231,25 +238,31 @@ export default class MSSQLGenerator {
         return result;
     }
 
-    private GetMSSQLType (type: string): SQLInputs {
-        let result: SQLInputs;
+    private GetMSSQLType (type: string): MSSQLTypeResult {
+        let result: MSSQLTypeResult = {
+            type: null,
+            jsType: null
+        };
         // Determine type
         switch (type) {
             case 'varchar':
-                result = VarChar;
+                result.type = VarChar;
+                result.jsType = 'string';
                 break;
             case 'int':
-                result = Int;
+                result.type = Int;
+                result.jsType = 'number';
                 break;
             case 'datetime':
-                result = DateTime;
+                result.type = DateTime;
+                result.jsType = 'date';
                 break;
             case 'bit':
-                result = Bit;
+                result.type = Bit;
+                result.jsType = 'boolean';
                 break;
             default:
                 this.errors.push(new Error(`Unhandled datatype provided - ${type}`));
-                result = null;
                 break;
         }
         return result;

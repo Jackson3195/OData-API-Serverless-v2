@@ -291,20 +291,6 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unhandled datatype provided - unknown');
     });
 
-    // test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', async () => {
-    //     ctx.req.params['entity'] = 'PropertyUsers';
-    //     ctx.req.params['id'] = '2-1';
-
-    //     ctx.req.method = 'PATCH';
-    //     ctx.req.body = {
-    //         'Data2': 2147483641
-    //     };
-
-    //     await api(ctx, ctx.req);
-    //     console.log(ctx.res.body);
-    //     expect(ctx.res.status).toBe(200);
-    // });
-
     test('It should return database errors in the response', async () => {
         ctx.req.method = 'POST';
         ctx.req.params['entity'] = 'Properties';
@@ -317,6 +303,37 @@ describe('API Functionality', () => {
 
         expect(ctx.res.status).toBe(400);
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Cannot insert the value NULL into column \'landlord\', table \'playground.dbo.property\'; column does not allow nulls. INSERT fails.');
+    });
+
+    test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', async () => {
+        ctx.req.params['entity'] = 'Users2';
+        ctx.req.params['id'] = '3';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 2147483641
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 3, Firstname: 'Jackson', Surname: 'Spectre', Data1: 2147483640, CreatedOn: '2020-11-23T19:53:55.000Z', LastUpdatedOn: '2020-11-25T22:59:39.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
+        ctx.req.body = {
+            'Data1': -2147483640
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 3, Firstname: 'Jackson', Surname: 'Spectre', Data1: -2147483639, CreatedOn: '2020-11-23T19:53:55.000Z', LastUpdatedOn: '2020-11-25T22:59:39.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
+        ctx.req.body = {
+            'Data1': 31
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 3, Firstname: 'Jackson', Surname: 'Spectre', Data1: 31, CreatedOn: '2020-11-23T19:53:55.000Z', LastUpdatedOn: '2020-11-25T22:59:39.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
     });
 
 

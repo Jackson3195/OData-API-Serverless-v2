@@ -83,6 +83,7 @@ export default class MSSqlConnection {
 export interface QueryDBVariable {
     name: string;
     type: SQLInputs;
+    jsType: 'string' | 'number' | 'boolean' | 'date';
     value: any;
 }
 
