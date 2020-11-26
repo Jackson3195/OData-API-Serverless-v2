@@ -284,13 +284,9 @@ export default class MSSQLGenerator {
             // Try get the file
             const file: string = path + entity + '.json';
             if (fs.existsSync(file)) {
-                try {
-                    const data: string = fs.readFileSync(file, 'utf-8');
-                    const result = JSON.parse(data) as Schema;
-                    return result;
-                } catch (e) {
-                    throw e;
-                }
+                const data: string = fs.readFileSync(file, 'utf-8');
+                const result = JSON.parse(data) as Schema;
+                return result;
             } else {
                 throw new Error(`Unknown Entity - ${entity}`);
             }

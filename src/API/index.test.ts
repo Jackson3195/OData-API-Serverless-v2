@@ -337,5 +337,35 @@ describe('API Functionality', () => {
 
     });
 
+    test('It should error if working locally and the schema directory is not set', async () => {
+        delete process.env['SchemaDirectory'];
+        ctx.req.params['entity'] = 'Users2';
+        ctx.req.params['id'] = '3';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 2147483641
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Environtment variable - Local environment SchemaDirectory not set');
+    });
+
+    test('It should error if not working locally; as feature not implemented', async () => {
+        delete process.env['AzureWebJobsStorage'];
+        ctx.req.params['entity'] = 'Users2';
+        ctx.req.params['id'] = '3';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 2147483641
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Feature not yet available');
+    });
+
 
 });

@@ -1,5 +1,4 @@
 import MSSqlConnection, { QueryDBVariable } from '@assets/connections/mssql';
-import { Schema } from '@assets/interfaces/schema';
 import { Context, Logger } from '@azure/functions';
 
 export interface MockContext extends Context {
