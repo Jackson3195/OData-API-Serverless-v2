@@ -33,6 +33,15 @@
             "Size": 100
           }
         },
+        "Data1": {
+          "Type": "Field",
+          "Visible": "External",
+          "SQL": {
+            "Name": "number",
+            "Type": "int",
+            "Size": 4
+          }
+        },
         "CreatedOn": {
           "Type": "Field",
           "Visible": "Internal",

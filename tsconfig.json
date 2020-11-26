@@ -18,6 +18,7 @@
     }
   },
   "include": [
+    "__mocks__/**/*.ts",
     "src/**/*.ts"
   ],
   "exclude": [

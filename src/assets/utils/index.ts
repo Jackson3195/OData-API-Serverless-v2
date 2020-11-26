@@ -70,7 +70,6 @@ export function Sanitize<T> (input: unknown, hard = false): T {
             } else {
                 return (numericData >= 0 ? maxInt : minInt) as unknown as T;
             }
-        case 'bigint':
         case 'boolean':
         case 'object':
             return input as T;

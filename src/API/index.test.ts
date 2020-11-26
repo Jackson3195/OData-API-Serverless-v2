@@ -1,20 +1,22 @@
-import { GetFreshContext, MockContext, GetSQLData, GetSchema } from '@assets/tests';
+import { GetFreshContext, MockContext, GetSQLData } from '@assets/tests';
 import { ErrorResponse } from '@assets/interfaces';
 // Note: Import first so that the mocked class is used instead of the real one
 import MSSqlConnection from '@assets/connections/mssql';
 jest.mock('@assets/connections/mssql');
 const mockedMSSqlConnection = MSSqlConnection as unknown as jest.Mock<typeof MSSqlConnection>;
-import MSSQLGenerator from '@assets/generator/mssql';
+// Note: Mock the fs module; invoke the mock so that jest knows to use the mocked version
+jest.mock('fs');
 // Note: Import last so that any other mock actions takes effect first
 import api from './index';
-
 describe('API Functionality', () => {
 
     let ctx: MockContext;
 
     // Note: Override GetSchema implementation so it returns a known schema
     beforeAll(() => {
-        jest.spyOn(MSSQLGenerator.prototype, 'GetSchema').mockImplementation((user) => GetSchema(user));
+        // Set env variables to be used throughout test suite
+        process.env['SchemaDirectory'] = '/';
+        process.env['AzureWebJobsStorage'] = 'UseDevelopmentStorage=true';
     });
     afterAll(() => {
         jest.restoreAllMocks();
@@ -164,7 +166,6 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('EntityId required');
         expect(deleteCtx.res.status).toBe(400);
         expect((deleteCtx.res.body as ErrorResponse).errors[0].message).toBe('EntityId required');
-
     });
 
     test('It should error when the entity body is not provided', async () => {
@@ -232,7 +233,6 @@ describe('API Functionality', () => {
     });
 
     test('It should handle error if composite primary is not passed in the correct format', async () => {
-
         ctx.req.params['entity'] = 'PropertyUsers';
         ctx.req.params['id'] = '2-';
 
@@ -247,20 +247,50 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('PropertyUsers missing primary key');
     });
 
-    // //  TODO: Implement
-    // test('It should not be able to amend an internal field', () => {
-    //     expect(false).toBe(true);
-    // });
+    test('It should error when a reference field is attempted to be amended', async () => {
+        ctx.req.method = 'POST';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.body = {
+            Portfolio: 'Jackson',
+            Surname: 'Jacob',
+            CreatedOn: new Date().toISOString(),
+        };
 
-    // //  TODO: Implement
-    // test('It should error if the unknown fields are requested to be amended', () => {
-    //     expect(false).toBe(true);
-    // });
+        await api(ctx, ctx.req);
 
-    // //  TODO: Implement
-    // test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', () => {
-    //     expect(false).toBe(true);
-    // });
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Portfolio is not a field that can be specified');
+    });
+
+    test('It should error if the unknown fields are requested to be amended', async () => {
+        ctx.req.params['entity'] = 'PropertyUsers';
+        ctx.req.params['id'] = '2-1';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Unknown': true
+        };
+
+        await api(ctx, ctx.req);
+
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Property [Unknown] does not exist on entity [PropertyUsers]');
+    });
+
+    test('It should error if an unsupported field type is referenced', async () => {
+        ctx.req.params['entity'] = 'UsersBroken';
+        ctx.req.params['id'] = '2';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Firstname': 'Jackson',
+            'Surname': 'Spectre',
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unhandled datatype provided - unknown');
+    });
 
     test('It should return database errors in the response', async () => {
         ctx.req.method = 'POST';
@@ -274,6 +304,67 @@ describe('API Functionality', () => {
 
         expect(ctx.res.status).toBe(400);
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Cannot insert the value NULL into column \'landlord\', table \'playground.dbo.property\'; column does not allow nulls. INSERT fails.');
+    });
+
+    test('It should truncate numeric values if its greather that MAX_INT (2147483640 > x >= -2147483639)', async () => {
+        ctx.req.params['entity'] = 'Users2';
+        ctx.req.params['id'] = '3';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 2147483641
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 3, Firstname: 'Jackson', Surname: 'Spectre', Data1: 2147483640, CreatedOn: '2020-11-23T19:53:55.000Z', LastUpdatedOn: '2020-11-25T22:59:39.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
+        ctx.req.body = {
+            'Data1': -2147483640
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 3, Firstname: 'Jackson', Surname: 'Spectre', Data1: -2147483639, CreatedOn: '2020-11-23T19:53:55.000Z', LastUpdatedOn: '2020-11-25T22:59:39.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
+        ctx.req.body = {
+            'Data1': 31
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 3, Firstname: 'Jackson', Surname: 'Spectre', Data1: 31, CreatedOn: '2020-11-23T19:53:55.000Z', LastUpdatedOn: '2020-11-25T22:59:39.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
+    });
+
+    test('It should error if working locally and the schema directory is not set', async () => {
+        delete process.env['SchemaDirectory'];
+        ctx.req.params['entity'] = 'Users2';
+        ctx.req.params['id'] = '3';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 2147483641
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Environtment variable - Local environment SchemaDirectory not set');
+    });
+
+    test('It should error if not working locally; as feature not implemented', async () => {
+        delete process.env['AzureWebJobsStorage'];
+        ctx.req.params['entity'] = 'Users2';
+        ctx.req.params['id'] = '3';
+
+        ctx.req.method = 'PATCH';
+        ctx.req.body = {
+            'Data1': 2147483641
+        };
+
+        await api(ctx, ctx.req);
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Feature not yet available');
     });
 
 

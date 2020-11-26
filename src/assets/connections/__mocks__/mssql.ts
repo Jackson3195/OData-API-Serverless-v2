@@ -36,7 +36,7 @@ function GetHashFromInputs (sql: string, variables: QueryDBVariable[]) {
     let sqlHash = GetMD5Hash(sql);
     for (const variable of variables) {
         // Ignore dates - As this can be based on runtime timestamps which causes the hash to change
-        if (new Date(variable.value).toString() === 'Invalid Date') {
+        if (variable.value !== null && variable.jsType !== 'date') {
             let value = (variable.value as Primitives).toString();
             sqlHash += GetMD5Hash(value);
         }

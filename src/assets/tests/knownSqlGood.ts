@@ -19,7 +19,7 @@ const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
         ] as IRecordSet<unknown>
     },
     // Update user test
-    '599c39e7dc9669fa0e43606999be73eb': {
+    '149bd6ecbb870864807806d8fea3bb20': {
         recordset: [
             {
                 'Id': 1,
@@ -35,7 +35,7 @@ const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
         ] as IRecordSet<unknown>
     },
     // Obsolete user test
-    '361941de31702b8057084a31b4dd9c07': {
+    '11352e8611e0e5e961d97c6f81d59176': {
         recordset: [
             {
                 'Id': 1,
@@ -50,7 +50,7 @@ const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
             }
         ] as IRecordSet<unknown>
     },
-    '30f31aef111008fa17baef3aa00e574a': {
+    'bd646b7ac450e4a7849523c5a0f86def': {
         recordset: [
             {
                 'Id': 1,
@@ -65,12 +65,60 @@ const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
             }
         ] as IRecordSet<unknown>
     },
-    '1ccae16b644c1d4021795799830a9b6e': {
+    '22305c7ee0a0811e2b3abe4542083d33': {
         recordset: [
             {
                 'PropertyId': 2,
                 'UserId': 1,
                 'Data1': 'Some updated text'
+            }
+        ] as IRecordSet<unknown>
+    },
+    '6cd67208f1330691e17bf11bab2cfee9': {
+        recordset: [
+            {
+                'Id': 3,
+                'Firstname': 'Jackson',
+                'Surname': 'Spectre',
+                'Data1': 2147483640,
+                'CreatedOn': '2020-11-23T19:53:55.000Z',
+                'LastUpdatedOn': '2020-11-25T22:59:39.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as IRecordSet<unknown>
+    },
+    '46263bfd597f5b23fbee08b58b173e7d': {
+        recordset: [
+            {
+                'Id': 3,
+                'Firstname': 'Jackson',
+                'Surname': 'Spectre',
+                'Data1': -2147483639,
+                'CreatedOn': '2020-11-23T19:53:55.000Z',
+                'LastUpdatedOn': '2020-11-25T22:59:39.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as IRecordSet<unknown>
+    },
+    '7fa3c3c38435af09b316dcbeb31ba26a': {
+        recordset: [
+            {
+                'Id': 3,
+                'Firstname': 'Jackson',
+                'Surname': 'Spectre',
+                'Data1': 31,
+                'CreatedOn': '2020-11-23T19:53:55.000Z',
+                'LastUpdatedOn': '2020-11-25T22:59:39.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
             }
         ] as IRecordSet<unknown>
     }
