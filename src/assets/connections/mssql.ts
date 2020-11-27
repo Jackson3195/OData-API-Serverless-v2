@@ -1,6 +1,4 @@
 // https://github.com/typescript-eslint/typescript-eslint/issues/2109
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ConnectionPool, PreparedStatement } from 'mssql';
 import { config, ISqlTypeFactoryWithLength, ISqlTypeWithLength, ISqlTypeFactoryWithNoParams, ISqlTypeWithPrecisionScale, IResult, IProcedureResult, ISqlType, ISqlTypeFactory } from 'mssql';
 import { Context } from '@azure/functions';

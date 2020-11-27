@@ -1,5 +1,6 @@
-import MSSqlConnection, { QueryDBVariable } from '@assets/connections/mssql';
+import { PreparedStatement } from 'mssql';
 import { Context, Logger } from '@azure/functions';
+import { Primitives } from '@assets/interfaces';
 
 export interface MockContext extends Context {
     done: Context['done'] & jest.Mock;
@@ -55,12 +56,7 @@ export function GetFreshContext (): MockContext {
 }
 
 // Get the SQL and Variables data of the mocked MSSqlConnection class
-export function GetSQLData (mocked: jest.Mock<typeof MSSqlConnection, any>): { sql: string; variables: QueryDBVariable[] } {
-    const executeMock = (mocked.mock.results[0].value as { Execute: jest.Mock}).Execute;
-    const firstCall: any[] = executeMock.mock.calls[0];
-    const result: { sql: string; variables: QueryDBVariable[] } = {
-        sql: firstCall[0] as string,
-        variables: firstCall[1] as QueryDBVariable[],
-    };
-    return result;
+export function GetSQLData (mocked: jest.Mock<typeof PreparedStatement, any>): { sql: string; variables: Record<string, Primitives> } {
+    const executeMock = (mocked.mock.results[0].value as { sql: string; variables: Record<string, Primitives>});
+    return executeMock;
 }
