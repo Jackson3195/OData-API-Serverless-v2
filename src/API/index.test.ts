@@ -1,13 +1,14 @@
 import { GetFreshContext, MockContext, GetSQLData } from '@assets/tests';
 import { ErrorResponse } from '@assets/interfaces';
-// Note: Import first so that the mocked class is used instead of the real one
-import MSSqlConnection from '@assets/connections/mssql';
-jest.mock('@assets/connections/mssql');
-const mockedMSSqlConnection = MSSqlConnection as unknown as jest.Mock<typeof MSSqlConnection>;
 // Note: Mock the fs module; invoke the mock so that jest knows to use the mocked version
 jest.mock('fs');
+// Note: Import so that we can observe the mocked class to determine values
+import { PreparedStatement } from 'mssql';
+jest.mock('mssql');
+const mockedPreparedStatement = PreparedStatement as unknown as jest.Mock<typeof PreparedStatement>;
 // Note: Import last so that any other mock actions takes effect first
 import api from './index';
+
 describe('API Functionality', () => {
 
     let ctx: MockContext;
@@ -25,7 +26,7 @@ describe('API Functionality', () => {
     // Note: Before reach test is run; perform these "RESET" actions
     beforeEach(() => {
         ctx = GetFreshContext();
-        mockedMSSqlConnection.mockClear();
+        mockedPreparedStatement.mockClear();
     });
 
     test('It should create a entity', async () => {
@@ -43,10 +44,10 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toMatchObject([ { 'Id': 1, 'Firstname': 'Jackson', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null } ]);
 
         // Verify SQL & Variables
-        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        const sqlResults = GetSQLData(mockedPreparedStatement);
         expect(sqlResults.sql).toBe('INSERT INTO dbo.[user] (firstname, surname, createdOn, lastUpdatedOn, lastUpdatedBy) OUTPUT INSERTED.id AS Id, INSERTED.firstname AS Firstname, INSERTED.surname AS Surname, INSERTED.createdOn AS CreatedOn, INSERTED.lastUpdatedOn AS LastUpdatedOn, INSERTED.lastUpdatedBy AS LastUpdatedBy, INSERTED.obsolete AS Obsolete, INSERTED.obsoletedOn AS ObsoletedOn, INSERTED.obsoletedBy AS ObsoletedBy VALUES (@userFirstname, @userSurname, @userCreatedOn, @userLastUpdatedOn, @userLastUpdatedBy);');
-        expect(sqlResults.variables[0].value).toBe('Jackson');
-        expect(sqlResults.variables[1].value).toBe('Jacob');
+        expect(sqlResults.variables['userFirstname']).toBe('Jackson');
+        expect(sqlResults.variables['userSurname']).toBe('Jacob');
     });
 
     test('It should update a entity', async () => {
@@ -65,11 +66,11 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toMatchObject([{'Id':1,'Firstname':'Donde','Surname':'Spectre','CreatedOn':'2020-11-14T19:54:04.000Z','LastUpdatedOn':'2020-11-15T20:20:12.000Z','LastUpdatedBy':'API','Obsolete':false,'ObsoletedOn':null,'ObsoletedBy':null}]);
 
         // Verify SQL & Variables
-        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        const sqlResults = GetSQLData(mockedPreparedStatement);
         expect(sqlResults.sql).toBe('UPDATE dbo.[user] SET [user].[firstname]=@userFirstname, [user].[surname]=@userSurname, [user].[lastUpdatedOn]=@userLastUpdatedOn, [user].[lastUpdatedBy]=@userLastUpdatedBy OUTPUT INSERTED.id AS Id, INSERTED.firstname AS Firstname, INSERTED.surname AS Surname, INSERTED.createdOn AS CreatedOn, INSERTED.lastUpdatedOn AS LastUpdatedOn, INSERTED.lastUpdatedBy AS LastUpdatedBy, INSERTED.obsolete AS Obsolete, INSERTED.obsoletedOn AS ObsoletedOn, INSERTED.obsoletedBy AS ObsoletedBy WHERE [user].[id] = @userId;');
-        expect(sqlResults.variables[0].value).toBe('Donde');
-        expect(sqlResults.variables[1].value).toBe('Spectre');
-        expect(sqlResults.variables[4].value).toBe('1');
+        expect(sqlResults.variables['userFirstname']).toBe('Donde');
+        expect(sqlResults.variables['userSurname']).toBe('Spectre');
+        expect(sqlResults.variables['userId']).toBe('1');
     });
 
     test('It should obsolete a entity', async () => {
@@ -84,11 +85,11 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toBeNull();
 
         // Verify SQL & Variables
-        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        const sqlResults = GetSQLData(mockedPreparedStatement);
         expect(sqlResults.sql).toBe('UPDATE dbo.[user] SET [user].[obsolete]=@userObsolete, [user].[obsoletedOn]=@userObsoletedOn, [user].[obsoletedBy]=@userObsoletedBy, [user].[lastUpdatedOn]=@userLastUpdatedOn, [user].[lastUpdatedBy]=@userLastUpdatedBy OUTPUT INSERTED.id AS Id, INSERTED.firstname AS Firstname, INSERTED.surname AS Surname, INSERTED.createdOn AS CreatedOn, INSERTED.lastUpdatedOn AS LastUpdatedOn, INSERTED.lastUpdatedBy AS LastUpdatedBy, INSERTED.obsolete AS Obsolete, INSERTED.obsoletedOn AS ObsoletedOn, INSERTED.obsoletedBy AS ObsoletedBy WHERE [user].[id] = @userId;');
-        expect(sqlResults.variables[0].value).toBe(true);
-        expect(sqlResults.variables[1].value).toBeInstanceOf(Date);
-        expect(sqlResults.variables[3].value).toBeInstanceOf(Date);
+        expect(sqlResults.variables['userObsolete']).toBe(true);
+        expect(sqlResults.variables['userObsoletedOn']).toBeDefined();
+        expect(sqlResults.variables['userObsoletedBy']).toBe('API');
     });
 
     test('It should obsolete a entity via a PATCH request', async () => {
@@ -106,11 +107,11 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toMatchObject([ { 'Id': 1, 'Firstname': 'Jackson', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-15T20:20:12.000Z', 'LastUpdatedBy': 'API', 'Obsolete': true, 'ObsoletedOn': '2020-11-15T20:20:12.000Z', 'ObsoletedBy': 'API' } ]);
 
         // Verify SQL & Variables
-        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        const sqlResults = GetSQLData(mockedPreparedStatement);
         expect(sqlResults.sql).toBe('UPDATE dbo.[user] SET [user].[obsolete]=@userObsolete, [user].[obsoletedOn]=@userObsoletedOn, [user].[obsoletedBy]=@userObsoletedBy, [user].[lastUpdatedOn]=@userLastUpdatedOn, [user].[lastUpdatedBy]=@userLastUpdatedBy OUTPUT INSERTED.id AS Id, INSERTED.firstname AS Firstname, INSERTED.surname AS Surname, INSERTED.createdOn AS CreatedOn, INSERTED.lastUpdatedOn AS LastUpdatedOn, INSERTED.lastUpdatedBy AS LastUpdatedBy, INSERTED.obsolete AS Obsolete, INSERTED.obsoletedOn AS ObsoletedOn, INSERTED.obsoletedBy AS ObsoletedBy WHERE [user].[id] = @userId;');
-        expect(sqlResults.variables[0].value).toBe(true);
-        expect(sqlResults.variables[1].value).toBeInstanceOf(Date);
-        expect(sqlResults.variables[3].value).toBeInstanceOf(Date);
+        expect(sqlResults.variables['userObsolete']).toBe(true);
+        expect(sqlResults.variables['userObsoletedOn']).toBeDefined();
+        expect(sqlResults.variables['userObsoletedBy']).toBe('API');
     });
 
     test('It should un-obsolete a entity via a PATCH request', async () => {
@@ -128,11 +129,11 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toMatchObject([ { 'Id': 1, 'Firstname': 'Jackson', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-15T20:20:12.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null } ]);
 
         // Verify SQL & Variables
-        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        const sqlResults = GetSQLData(mockedPreparedStatement);
         expect(sqlResults.sql).toBe('UPDATE dbo.[user] SET [user].[obsolete]=@userObsolete, [user].[obsoletedOn]=@userObsoletedOn, [user].[obsoletedBy]=@userObsoletedBy, [user].[lastUpdatedOn]=@userLastUpdatedOn, [user].[lastUpdatedBy]=@userLastUpdatedBy OUTPUT INSERTED.id AS Id, INSERTED.firstname AS Firstname, INSERTED.surname AS Surname, INSERTED.createdOn AS CreatedOn, INSERTED.lastUpdatedOn AS LastUpdatedOn, INSERTED.lastUpdatedBy AS LastUpdatedBy, INSERTED.obsolete AS Obsolete, INSERTED.obsoletedOn AS ObsoletedOn, INSERTED.obsoletedBy AS ObsoletedBy WHERE [user].[id] = @userId;');
-        expect(sqlResults.variables[0].value).toBe(false);
-        expect(sqlResults.variables[1].value).toBeNull();
-        expect(sqlResults.variables[2].value).toBeNull();
+        expect(sqlResults.variables['userObsolete']).toBe(false);
+        expect(sqlResults.variables['userObsoletedOn']).toBeNull();
+        expect(sqlResults.variables['userObsoletedBy']).toBeNull();
     });
 
     test('It should return a 405 method not allowed if unhandled method is passed', async () => {
@@ -225,11 +226,11 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toMatchObject([ { PropertyId: 2, UserId: 1, Data1: 'Some updated text' } ]);
 
         // Verify SQL & Variables
-        const sqlResults = GetSQLData(mockedMSSqlConnection);
+        const sqlResults = GetSQLData(mockedPreparedStatement);
         expect(sqlResults.sql).toBe('UPDATE dbo.[property_user] SET [property_user].[data1]=@property_userData1 OUTPUT INSERTED.propertyId AS PropertyId, INSERTED.userId AS UserId, INSERTED.data1 AS Data1 WHERE [property_user].[propertyId] = @property_userPropertyId AND [property_user].[userId] = @property_userUserId;');
-        expect(sqlResults.variables[0].value).toBe('Some updated text');
-        expect(sqlResults.variables[1].value).toBe('2');
-        expect(sqlResults.variables[2].value).toBe('1');
+        expect(sqlResults.variables['property_userData1']).toBe('Some updated text');
+        expect(sqlResults.variables['property_userPropertyId']).toBe('2');
+        expect(sqlResults.variables['property_userUserId']).toBe('1');
     });
 
     test('It should handle error if composite primary is not passed in the correct format', async () => {
