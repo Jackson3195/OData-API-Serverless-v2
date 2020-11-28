@@ -24,6 +24,7 @@ const mssqlConfig: config = {
 
 // Create connection pool (Static to be shared across all instances)
 const staticPool: ConnectionPool = new ConnectionPool(mssqlConfig);
+/* istanbul ignore next */
 staticPool.connect((err) => { if (err) { console.error('Unable to create MSSQL Connection Pool',  err); }});
 
 export default class MSSqlConnection {
@@ -35,6 +36,7 @@ export default class MSSqlConnection {
         this.ctx = context;
         // Attach error listner
         this.pool.on('error', (err) => {
+            /* istanbul ignore next */
             this.ctx.log.error(err);
         });
     }
@@ -54,6 +56,7 @@ export default class MSSqlConnection {
             // Prepare SQL
             ps.prepare(sql, (err: Error) => {
                 if (err) {
+                    /* istanbul ignore next */
                     reject(err);
                 } else {
                     // Execute prepared statement
@@ -61,6 +64,7 @@ export default class MSSqlConnection {
                         // Disconnect from pool regardless
                         ps.unprepare((err: Error) => {
                             if (err) {
+                                /* istanbul ignore next */
                                 reject(err);
                             }
                         });
