@@ -1,6 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "exclude": [
+        "__mocks__/**/*.ts",
         "**/*/*.test.ts"
     ]
 }

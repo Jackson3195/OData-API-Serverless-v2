@@ -18,10 +18,10 @@ const api: AzureFunction = async function (ctx: Context, req: HttpRequest) {
                     let entityBody: Record<string, Primitives> = null;
 
                     // Populate entityId if needed
-                    if (method === 'PATCH' || method === 'DELETE') {
+                    if (method === 'GET' || method === 'PATCH' || method === 'DELETE') {
                         entityId = ctx.req.params['id'] ? Sanitize(ctx.req.params['id'], true) : null;
-                        // Handle null entity IDs
-                        if (!entityId) {
+                        // Handle null entity IDs as long as the method is not a get
+                        if (!entityId && method !== 'GET') {
                             throw new Error('EntityId required');
                         }
                     }

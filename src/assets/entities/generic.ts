@@ -41,7 +41,7 @@ export default class Generic {
         // Determine which action to take
         switch (this.method) {
             case 'GET':
-                // TODO: Support;
+                this.HandleResponse(200, await this.sqlGenerator.GenerateAndExecute('SELECT', this.entity, this.entityId, this.entityData));
                 break;
             case 'POST':
                 this.HandleResponse(201, await this.sqlGenerator.GenerateAndExecute('INSERT', this.entity, null, this.entityData));

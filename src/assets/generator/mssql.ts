@@ -10,7 +10,7 @@ import * as fs from 'fs';
  * https://github.com/techniq/odata-query/blob/master/src/index.ts
  */
 
-type StatementType = 'INSERT' | 'UPDATE' | 'DELETE';
+type StatementType = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE';
 
 export interface SQLInputObject {
     sql: string;
@@ -43,6 +43,173 @@ export default class MSSQLGenerator {
         return null;
     }
 
+    private GenerateSelectStatement (ts: Schema['entity'], tableName: string, entityId: string, query: Record<string, Primitives>): SQLInputObject {
+        // Create base query
+        const result: SQLInputObject = {
+            sql: `SELECT %FIELD% FROM ${tableName} %FILTER%;`,
+            variables: []
+        };
+        // (Passed my reference since passing an object instead of a direct value)
+        // Handle $select
+        this.ParseSelect(ts, result, query);
+        // TODO: Handle $filter
+        if (this.errors.length === 0) {
+            this.ParseFilter(ts, result, query as Record<string, string>, entityId);
+        }
+        // TODO: Handle $expand
+        // TODO: Handle $top
+        // TODO: Handle $orderby
+        // TODO: Handle $pagination
+        this.ctx.log.warn(result.sql);
+        return result;
+    }
+
+    // Complexity: O(n)
+    private ParseSelect (ts: Schema['entity'], result: SQLInputObject, _query: Record<string, Primitives>) {
+        const regexField = new RegExp(/(%FIELD%)/gm);
+        // Select all attributes
+        const keys: string[] = Object.keys(ts.Attributes);
+        for (let i = 0; i < keys.length; i++) {
+            const attribute: FieldAttribute | ReferenceAttribute = ts.Attributes[keys[i]];
+            if (this.isFieldAttribute(attribute)) {
+                // Extract attribute
+                const metadata: FieldAttribute = attribute;
+                // Determine if last attribute or not
+                result.sql = result.sql.replace(regexField, (`[${ts.Tablename}].[${metadata.SQL.Name}] AS ${keys[i]}, %FIELD%`));
+            }
+        }
+        // Replace last field
+        result.sql = result.sql.replace(new RegExp(/(, %FIELD%)/gm), '');
+    }
+
+    // Complexity: O(n)
+    private ParseFilter (ts: Schema['entity'], result: SQLInputObject, query: Record<string, string>, entityId: string = null) {
+        const regexFilter = new RegExp(/(%FILTER%)/gm);
+        // Support entity Id if filter is not provided
+        if (entityId && !query['$filter']) {
+            query['$filter'] = '%PKFIELD%';
+            const regexPKField = new RegExp(/(%PKFIELD%)/gm);
+            const splitPKs = this.GetPrimaryKey(entityId);
+            if (splitPKs.length === ts.PrimaryKey.length) {
+                for (let i = 0; i < ts.PrimaryKey.length; i++) {
+                    if (i < (ts.PrimaryKey.length - 1)) {
+                        query['$filter'] = query['$filter'].replace(regexPKField, `${ts.PrimaryKey[i]} eq ${splitPKs[i]} AND %PKFIELD%`);
+                    } else {
+                        query['$filter'] = query['$filter'].replace(regexPKField, `${ts.PrimaryKey[i]} eq ${splitPKs[i]}`);
+                    }
+                }
+            } else {
+                this.errors.push(new Error('Invalid primary key'));
+            }
+        }
+        // Perform filter action
+        if (query['$filter']) {
+            // Setup filter variables
+            const COMPARISON_OPERATORS: Record<string, string> = {
+                eq: '=',
+                ne: '!=',
+                gt: '>',
+                ge: '>=',
+                lt: '<',
+                le: '<=',
+            };
+            const LOGICAL_OPERATORS: Record<string, string> = {
+                and: 'AND',
+                or: 'OR',
+                not: 'NOT',
+            };
+            // Get fields
+            const seperator = new RegExp(/\s(and|or|not)\s/gm);
+            const filters: string[] = query['$filter'].split(seperator);
+            // Append SQL where statement
+            result.sql = result.sql.replace(regexFilter, 'WHERE %FIELD%%COMPOP%%VALUE%');
+            // Setup regex filters
+            const regexFilterStatement = new RegExp(/([A-Za-z0-9]{0,})\s(eq|ne|gt|ge|lt|le)\s[A-Za-z0-9\'\\]{0,}/gm);
+            const regexComparisonOperators = new RegExp(/\s(eq|ne|gt|ge|lt|le)\s/gm);
+            const regexField = new RegExp(/%FIELD%/gm);
+            const regexComparisonOperator = new RegExp(/%COMPOP%/gm);
+            const regexValue = new RegExp(/%VALUE%/gm);
+            const regexLogical = new RegExp(/%LOGICAL%/gm);
+            // Iterate through filter set
+            for (let i = 0; i < filters.length; i++) {
+                // Extract the filter query
+                const filter: string = filters[i];
+                // If actually a filter
+                if (regexFilterStatement.test(filter)) {
+                    // Split and remove any white spaces
+                    const splitFilter: string[] = filter.split(regexComparisonOperators).map((val) => val.replace(/\s/gm, ''));
+                    // Determine if filter in correct format
+                    if (splitFilter.length === 3) {
+                        // If in filter format
+                        const field: string = Sanitize(splitFilter[0], true);
+                        const comparisonOperator: string = Sanitize(splitFilter[1], true);
+                        const value: Primitives = splitFilter[2]; // Will be sanitized later
+                        // Extract field
+                        if (ts.Attributes[field] !== undefined && this.errors.length === 0) {
+                            const attribute: FieldAttribute | ReferenceAttribute = ts.Attributes[field];
+                            if (this.isFieldAttribute(attribute)) {
+                                // Extract field and replace field name
+                                const metadata: FieldAttribute = attribute;
+                                result.sql = result.sql.replace(regexField, `[${ts.Tablename}].[${metadata.SQL.Name}]`);
+                                // Handle NULLs
+                                if (value === 'null') {
+                                    // Determine if comparison operators correct
+                                    if (comparisonOperator === 'eq' || comparisonOperator === 'ne') {
+                                        // Set correct comparison operators
+                                        if (comparisonOperator === 'eq') {
+                                            result.sql = result.sql.replace(regexComparisonOperator, ' IS ');
+                                        } else {
+                                            result.sql = result.sql.replace(regexComparisonOperator, ' IS NOT ');
+                                        }
+                                        // Replace SQL
+                                        if (i < (filters.length - 1)) {
+                                            result.sql = result.sql.replace(regexValue, 'NULL %LOGICAL% %FIELD%%COMPOP%%VALUE%');
+                                        } else {
+                                            result.sql = result.sql.replace(regexValue, 'NULL');
+                                        }
+                                    } else {
+                                        this.errors.push(new Error('Only eq or ne operators are allowed for null values'));
+                                    }
+                                } else {
+                                    // Handle normal values
+                                    const variable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, metadata.SQL, value);
+                                    result.sql = result.sql.replace(regexComparisonOperator, COMPARISON_OPERATORS[comparisonOperator]);
+                                    if (i < (filters.length - 1)) {
+                                        result.sql = result.sql.replace(regexValue, `@${variable.name} %LOGICAL% %FIELD%%COMPOP%%VALUE%`);
+                                    } else {
+                                        result.sql = result.sql.replace(regexValue, `@${variable.name}`);
+                                    }
+                                    result.variables.push(variable);
+                                }
+                            } else {
+                                this.errors.push(new Error(`${field} is not a filterable field`));
+                            }
+                        } else {
+                            // If unknown attribute
+                            if (ts.Attributes[field] === undefined) {
+                                this.errors.push(new Error(`Field ${field} does not exist on entity to $filter`));
+                            }
+                        }
+                    } else {
+                        this.errors.push(new Error('Incorrect $filter Format'));
+                    }
+                } else {
+                    // Has to be logical operator now
+                    if (LOGICAL_OPERATORS[filter]) {
+                        result.sql = result.sql.replace(regexLogical, LOGICAL_OPERATORS[filter]);
+                    } else {
+                        this.errors.push(new Error(`Unknown $filter segment detected ${filter}`));
+                    }
+                }
+            }
+        } else {
+            if (entityId) {
+                this.ctx.log.warn('TODO: Support entityId');
+            }
+            result.sql = result.sql.replace(regexFilter, '');
+        }
+    }
+
     private GenerateStatement (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): SQLInputObject {
         // Get the target schema
         const schema: Schema = this.GetSchema(entity);
@@ -53,99 +220,103 @@ export default class MSSQLGenerator {
         const tableName: string = ts.Owner + '.[' + ts.Tablename + ']';
         // SQL Construction: 1
         let sql: string;
-        switch (type) {
-            case 'INSERT':
-                sql = `INSERT INTO ${tableName} (%PARAM%) OUTPUT %OUTPUTVALUE% VALUES (%VALUE%);`;
-                break;
-            case 'UPDATE':
-            case 'DELETE':
-                sql = `UPDATE ${tableName} SET %PARAM%=%VALUE% OUTPUT %OUTPUTVALUE% WHERE %ENTITY%;`;
-                break;
-        }
-        // Handle metadata
-        attributes = this.UpdateMetadata(ts, attributes, (type === 'INSERT'), (type === 'DELETE'));
         // Sql variables holder
         let variables: QueryDBVariable[] = [];
-        // Extract attributes into array
-        const keys: string[] = Object.keys(attributes);
-        // Determine pattern to replace
-        const regexColumn = new RegExp(/(%PARAM%)/gm);
-        const regexValue = new RegExp(/(%VALUE%)/gm);
-        const regexOutputValue = new RegExp(/%OUTPUTVALUE%/);
-        // Populate
-        for (let i = 0; i < keys.length; i++) {
-            if (ts.Attributes[keys[i]] !== undefined && this.errors.length === 0) {
-                if (this.isFieldAttribute(ts.Attributes[keys[i]])) {
+        if (type === 'SELECT') {
+            return this.GenerateSelectStatement(ts, tableName, entityId, attributes);
+        } else {
+            switch (type) {
+                case 'INSERT':
+                    sql = `INSERT INTO ${tableName} (%PARAM%) OUTPUT %OUTPUTVALUE% VALUES (%VALUE%);`;
+                    break;
+                case 'UPDATE':
+                case 'DELETE':
+                    sql = `UPDATE ${tableName} SET %PARAM%=%VALUE% OUTPUT %OUTPUTVALUE% WHERE %ENTITY%;`;
+                    break;
+            }
+            // Handle metadata
+            attributes = this.UpdateMetadata(ts, attributes, (type === 'INSERT'), (type === 'DELETE'));
+            // Extract attributes into array
+            const keys: string[] = Object.keys(attributes);
+            // Determine pattern to replace
+            const regexColumn = new RegExp(/(%PARAM%)/gm);
+            const regexValue = new RegExp(/(%VALUE%)/gm);
+            const regexOutputValue = new RegExp(/%OUTPUTVALUE%/);
+            // Populate
+            for (let i = 0; i < keys.length; i++) {
+                if (ts.Attributes[keys[i]] !== undefined && this.errors.length === 0) {
+                    if (this.isFieldAttribute(ts.Attributes[keys[i]])) {
                     // Extract attribute
-                    const metadata: FieldAttribute = ts.Attributes[keys[i]] as FieldAttribute;
-                    // Populate SQL variables array
-                    const variable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, metadata.SQL, attributes[keys[i]]);
-                    variables.push(variable);
-                    // SQL Construction: 2
-                    if (type === 'INSERT') {
+                        const metadata: FieldAttribute = ts.Attributes[keys[i]] as FieldAttribute;
+                        // Populate SQL variables array
+                        const variable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, metadata.SQL, attributes[keys[i]]);
+                        variables.push(variable);
+                        // SQL Construction: 2
+                        if (type === 'INSERT') {
                         // Determine if last or not
-                        if (i < (keys.length - 1)) {
-                            sql = sql
-                                .replace(regexColumn, (metadata.SQL.Name + ', %PARAM%'))
-                                .replace(regexValue, (`@${variable.name}, %VALUE%`));
-                        } else {
-                            sql = sql
-                                .replace(regexColumn, (metadata.SQL.Name))
-                                .replace(regexValue, (`@${variable.name}`));
-                        }
-                    } else {
-                        // Determine if last or not
-                        if (i < (keys.length - 1)) {
-                            sql = sql
-                                .replace(regexColumn, (`[${ts.Tablename}].[${metadata.SQL.Name}]`))
-                                .replace(regexValue, `@${variable.name}, %PARAM%=%VALUE%`);
-                        } else {
-                            // Additional replacement patterns
-                            const regexEntity = new RegExp(/%ENTITY%/gm);
-                            // Replace last value
-                            sql = sql
-                                .replace(regexColumn, (`[${ts.Tablename}].[${metadata.SQL.Name}]`))
-                                .replace(regexValue, `@${variable.name}`);
-                            // Add PKs if last property
-                            const primaryKeyValues: string[] = this.GetPrimaryKey(entityId);
-                            if (primaryKeyValues.length === ts.PrimaryKey.length) {
-                                for (let y = 0; y < ts.PrimaryKey.length; y++) {
-                                    const primaryKey: string = ts.PrimaryKey[y];
-                                    const primaryKeyAttribute: FieldAttribute = ts.Attributes[primaryKey] as FieldAttribute;
-                                    // Handle composite primary keys
-                                    if (y < (ts.PrimaryKey.length - 1)) {
-                                        // Support Composite Primary Keys
-                                        sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey} AND %ENTITY%`));
-                                    } else {
-                                        sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey}`));
-                                    }
-                                    // Generate PK variable
-                                    const pkVariable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, primaryKeyAttribute.SQL, primaryKeyValues[y]);
-                                    variables.push(pkVariable);
-                                }
+                            if (i < (keys.length - 1)) {
+                                sql = sql
+                                    .replace(regexColumn, (metadata.SQL.Name + ', %PARAM%'))
+                                    .replace(regexValue, (`@${variable.name}, %VALUE%`));
                             } else {
-                                this.errors.push(new Error(`${entity} missing primary key`));
+                                sql = sql
+                                    .replace(regexColumn, (metadata.SQL.Name))
+                                    .replace(regexValue, (`@${variable.name}`));
+                            }
+                        } else {
+                        // Determine if last or not
+                            if (i < (keys.length - 1)) {
+                                sql = sql
+                                    .replace(regexColumn, (`[${ts.Tablename}].[${metadata.SQL.Name}]`))
+                                    .replace(regexValue, `@${variable.name}, %PARAM%=%VALUE%`);
+                            } else {
+                            // Additional replacement patterns
+                                const regexEntity = new RegExp(/%ENTITY%/gm);
+                                // Replace last value
+                                sql = sql
+                                    .replace(regexColumn, (`[${ts.Tablename}].[${metadata.SQL.Name}]`))
+                                    .replace(regexValue, `@${variable.name}`);
+                                // Add PKs if last property
+                                const primaryKeyValues: string[] = this.GetPrimaryKey(entityId);
+                                if (primaryKeyValues.length === ts.PrimaryKey.length) {
+                                    for (let y = 0; y < ts.PrimaryKey.length; y++) {
+                                        const primaryKey: string = ts.PrimaryKey[y];
+                                        const primaryKeyAttribute: FieldAttribute = ts.Attributes[primaryKey] as FieldAttribute;
+                                        // Handle composite primary keys
+                                        if (y < (ts.PrimaryKey.length - 1)) {
+                                        // Support Composite Primary Keys
+                                            sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey} AND %ENTITY%`));
+                                        } else {
+                                            sql = sql.replace(regexEntity, (`[${ts.Tablename}].[${primaryKeyAttribute.SQL.Name}] = @${ts.Tablename + primaryKey}`));
+                                        }
+                                        // Generate PK variable
+                                        const pkVariable: QueryDBVariable = this.GenerateQueryDBVariables(ts.Tablename, primaryKeyAttribute.SQL, primaryKeyValues[y]);
+                                        variables.push(pkVariable);
+                                    }
+                                } else {
+                                    this.errors.push(new Error(`${entity} missing primary key`));
+                                }
                             }
                         }
+                    } else {
+                        this.errors.push(new Error(`${keys[i]} is not a field that can be specified`));
                     }
                 } else {
-                    this.errors.push(new Error(`${keys[i]} is not a field that can be specified`));
-                }
-            } else {
-                if (ts.Attributes[keys[i]] === undefined) {
-                    this.errors.push(new Error(`Property [${keys[i]}] does not exist on entity [${entity}]`));
+                    if (ts.Attributes[keys[i]] === undefined) {
+                        this.errors.push(new Error(`Property [${keys[i]}] does not exist on entity [${entity}]`));
+                    }
                 }
             }
-        }
-        // SQL Construction: 3 - Fill in output fields
-        const fieldKeys: string[] = Object.keys(ts.Attributes).filter((key) => ts.Attributes[key].Type === 'Field');
-        for (let i = 0; i < fieldKeys.length; i++) {
-            if (this.errors.length === 0) {
-                const metadata: FieldAttribute = ts.Attributes[fieldKeys[i]] as FieldAttribute;
-                if (i < (fieldKeys.length - 1)) {
-                    sql = sql.replace(regexOutputValue, (`INSERTED.${metadata.SQL.Name} AS ${fieldKeys[i]}, %OUTPUTVALUE%`));
-                } else {
-                    sql = sql.replace(regexOutputValue, (`INSERTED.${metadata.SQL.Name} AS ${fieldKeys[i]}`));
+            // SQL Construction: 3 - Fill in output fields
+            const fieldKeys: string[] = Object.keys(ts.Attributes).filter((key) => ts.Attributes[key].Type === 'Field');
+            for (let i = 0; i < fieldKeys.length; i++) {
+                if (this.errors.length === 0) {
+                    const metadata: FieldAttribute = ts.Attributes[fieldKeys[i]] as FieldAttribute;
+                    if (i < (fieldKeys.length - 1)) {
+                        sql = sql.replace(regexOutputValue, (`INSERTED.${metadata.SQL.Name} AS ${fieldKeys[i]}, %OUTPUTVALUE%`));
+                    } else {
+                        sql = sql.replace(regexOutputValue, (`INSERTED.${metadata.SQL.Name} AS ${fieldKeys[i]}`));
+                    }
                 }
             }
         }

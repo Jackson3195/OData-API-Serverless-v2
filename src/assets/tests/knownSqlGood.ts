@@ -2,6 +2,71 @@ import { IResult, IRecordSet } from 'mssql';
 
 // Hash SQL Hash lookup to result
 const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
+    // Select all user
+    'ef9932a20f730d57b5f35024e359e3e7': {
+        recordset: [
+            {
+                'Id': 1,
+                'Firstname': 'Jackson',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+            {
+                'Id': 2,
+                'Firstname': 'Jeff',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+            {
+                'Id': 3,
+                'Firstname': 'Ferly',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+            {
+                'Id': 4,
+                'Firstname': 'Jacqueline',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as IRecordSet<unknown>
+    },
+    // Get single user with Id
+    '7167f8920b6f1d62b7c1ddf934ba199e': {
+        recordset: [
+            {
+                'Id': 2,
+                'Firstname': 'Jeff',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as IRecordSet<unknown>
+    },
     // Insert user test
     'de399dae44d6263c0296f535fd32bec5': {
         recordset: [

@@ -29,6 +29,37 @@ describe('API Functionality', () => {
         mockedPreparedStatement.mockClear();
     });
 
+    test('It should get all entities if an id is not specified', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        delete ctx.req.params['id'];
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { Id: 1, Firstname: 'Jackson', Surname: 'Jacob', CreatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null }, { Id: 2, Firstname: 'Jeff', Surname: 'Jacob', CreatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null }, { Id: 3, Firstname: 'Ferly', Surname: 'Jacob', CreatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null }, { Id: 4, Firstname: 'Jacqueline', Surname: 'Jacob', CreatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedOn: '2020-11-14T19:54:04.000Z', LastUpdatedBy: 'API', Obsolete: false, ObsoletedOn: null, ObsoletedBy: null } ]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ;');
+        expect(sqlResults.variables).toMatchObject({});
+    });
+
+    test('It should get a single entity if the id is specified', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.params['id'] = '2';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([ { 'Id': 2, 'Firstname': 'Jeff', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }]);
+
+        // Verify SQL & Variables
+    });
+
     test('It should create a entity', async () => {
         ctx.req.method = 'POST';
         ctx.req.params['entity'] = 'Users';
