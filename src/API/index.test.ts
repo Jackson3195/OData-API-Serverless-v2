@@ -2,7 +2,7 @@ import { GetFreshContext, MockContext, GetSQLData } from '@assets/tests';
 import { ErrorResponse } from '@assets/interfaces';
 // Note: Mock the fs module; invoke the mock so that jest knows to use the mocked version
 jest.mock('fs');
-// Note: Import so that we can observe the mocked class to determine values
+// Note: Mock the mssql module; import so that we can observe the mocked class to determine values
 import { PreparedStatement } from 'mssql';
 jest.mock('mssql');
 const mockedPreparedStatement = PreparedStatement as unknown as jest.Mock<typeof PreparedStatement>;
@@ -58,6 +58,9 @@ describe('API Functionality', () => {
         expect(ctx.res.body).toMatchObject([ { 'Id': 2, 'Firstname': 'Jeff', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }]);
 
         // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[id]=@userId;');
+        expect(sqlResults.variables).toMatchObject({userId: '2'});
     });
 
     test('It should create a entity', async () => {
