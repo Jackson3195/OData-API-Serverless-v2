@@ -6,22 +6,20 @@ export function HandleError (ctx: Context, errors: Error[], payload: Record<stri
     const errorDetails: ErrorResponseBody[] = [];
     let unauthorised = false;
     for (let e of errors) {
-        if (e) {
-            // Determine if unauthorised has been see
-            if (e.message === 'Unauthorised') {
-                unauthorised = true;
-                break;
-            }
-            // Continue with errors
-            errorDetails.push(
-                {
-                    name: e.name || 'No error name provided',
-                    message: e.message || 'No error message provided',
-                    stack: e.stack || 'No error stack provided',
-                },
-            );
-            ctx.log.error(e);
+        // Determine if unauthorised has been see
+        if (e.message === 'Unauthorised') {
+            unauthorised = true;
+            break;
         }
+        // Continue with errors
+        errorDetails.push(
+            {
+                name: e.name || 'No error name provided',
+                message: e.message || 'No error message provided',
+                stack: e.stack || 'No error stack provided',
+            },
+        );
+        ctx.log.error(e);
     }
     // If unauthorised; respond with 401 else 400 and details
     if (unauthorised) {
@@ -73,6 +71,7 @@ export function Sanitize<T> (input: unknown, hard = false): T {
         case 'boolean':
         case 'object':
             return input as T;
+        /* istanbul ignore next */
         default:
             return null;
     }
