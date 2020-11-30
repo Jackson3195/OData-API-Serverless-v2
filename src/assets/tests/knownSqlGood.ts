@@ -2,6 +2,16 @@ import { IResult, IRecordSet } from 'mssql';
 
 // Hash SQL Hash lookup to result
 const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
+    // Select all composite entity
+    '1b5f44c9042aaf7c5939f0f47ef59a3c': {
+        recordset: [
+            {
+                'PropertyId': 1,
+                'UserId': 2,
+                'Data1': 'LOL'
+            }
+        ] as IRecordSet<unknown>
+    },
     // Select all user
     'ef9932a20f730d57b5f35024e359e3e7': {
         recordset: [

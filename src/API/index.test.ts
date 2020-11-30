@@ -63,6 +63,59 @@ describe('API Functionality', () => {
         expect(sqlResults.variables).toMatchObject({userId: '2'});
     });
 
+    test('It should be able to get an entity with a composite primary key', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'PropertyUsers';
+        ctx.req.params['id'] = '1-2';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([{'PropertyId':1,'UserId':2,'Data1':'LOL'}]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement);
+        expect(sqlResults.sql).toBe('SELECT [property_user].[propertyId] AS PropertyId, [property_user].[userId] AS UserId, [property_user].[data1] AS Data1 FROM dbo.[property_user] WHERE [property_user].[propertyId]=@property_userPropertyId AND [property_user].[userId]=@property_userUserId;');
+        expect(sqlResults.variables).toMatchObject({property_userPropertyId: '1', property_userUserId: '2'});
+    });
+
+    // test('Get should error if the primary key is invalid', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$filter should be able to get results with multiple filters', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$filter should error if not in correct format', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$filter should error if invalid comparison operator is sent with a null value', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$filter should error if a field is not filterable', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$filter should error if a field does not exist on a property', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$select should only return the specified fields', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$select should error if a field is not selectable', () => {
+    //     expect(true).toBe(false);
+    // });
+
+    // test('$select should error if a field does not exist on a property', () => {
+    //     expect(true).toBe(false);
+    // });
+
     test('It should create a entity', async () => {
         ctx.req.method = 'POST';
         ctx.req.params['entity'] = 'Users';
