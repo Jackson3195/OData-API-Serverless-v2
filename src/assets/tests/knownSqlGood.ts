@@ -2,7 +2,66 @@ import { IResult, IRecordSet } from 'mssql';
 
 // Hash SQL Hash lookup to result
 const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
-    // Select all composite entity
+    // Select to get is not null
+    'e2e40d15f0f50b682e9e2d7c645d7f16': {
+        recordset: [
+            {
+                'Id': 1,
+                'Firstname': 'Jackson',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+        ] as IRecordSet<unknown>
+    },
+    // Select to get that nulls work
+    'b8db4154112216d71dd3ba7022e9cb94': {
+        recordset: [
+            {
+                'Id': 1,
+                'Firstname': 'Jackson',
+                'Surname': null,
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+        ] as IRecordSet<unknown>
+    },
+    // Select users with multiple filters
+    'aaee66c703452d161085371207ac3367': {
+        recordset: [
+            {
+                'Id': 1,
+                'Firstname': 'Jackson',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+            {
+                'Id': 2,
+                'Firstname': 'Jeff',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as IRecordSet<unknown>
+    },
+    // Select a composite entity
     '1b5f44c9042aaf7c5939f0f47ef59a3c': {
         recordset: [
             {

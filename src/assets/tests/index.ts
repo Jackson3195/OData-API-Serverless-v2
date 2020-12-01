@@ -27,7 +27,7 @@ export function GetFreshContext (): MockContext {
             query: {},
             params: {
                 entity: 'Users',
-                id: '3',
+                id: null
             },
             body: null,
         },
@@ -56,7 +56,7 @@ export function GetFreshContext (): MockContext {
 }
 
 // Get the SQL and Variables data of the mocked MSSqlConnection class
-export function GetSQLData (mocked: jest.Mock<typeof PreparedStatement, any>): { sql: string; variables: Record<string, Primitives> } {
-    const executeMock = (mocked.mock.results[0].value as { sql: string; variables: Record<string, Primitives>});
+export function GetSQLData (mocked: jest.Mock<typeof PreparedStatement, any>, call = 0): { sql: string; variables: Record<string, Primitives> } {
+    const executeMock = (mocked.mock.results[call].value as { sql: string; variables: Record<string, Primitives>});
     return executeMock;
 }

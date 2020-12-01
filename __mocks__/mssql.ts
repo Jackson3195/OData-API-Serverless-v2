@@ -40,7 +40,7 @@ mssqlPackage.PreparedStatement = jest.fn(() => ({
             }
         }
         const finalhash = this.getMD5Hash(sqlHash);
-        console.log(finalhash);
+        console.log(finalhash, this.sql);
         // Extract the results from the SQL or error
         if (BadSQL[finalhash] !== undefined) {
             callback(BadSQL[finalhash], null);

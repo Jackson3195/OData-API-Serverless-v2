@@ -63,7 +63,7 @@ describe('API Functionality', () => {
         expect(sqlResults.variables).toMatchObject({userId: '2'});
     });
 
-    test('It should be able to get an entity with a composite primary key', async () => {
+    test('It should be able to get a single entity with a composite primary key', async () => {
         ctx.req.method = 'GET';
         ctx.req.params['entity'] = 'PropertyUsers';
         ctx.req.params['id'] = '1-2';
@@ -80,21 +80,131 @@ describe('API Functionality', () => {
         expect(sqlResults.variables).toMatchObject({property_userPropertyId: '1', property_userUserId: '2'});
     });
 
-    // test('Get should error if the primary key is invalid', () => {
-    //     expect(true).toBe(false);
-    // });
+    test('Get should error if the primary key is invalid', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'PropertyUsers';
+        ctx.req.params['id'] = '1-2-5';
 
-    // test('$filter should be able to get results with multiple filters', () => {
-    //     expect(true).toBe(false);
-    // });
+        await api(ctx, ctx.req);
 
-    // test('$filter should error if not in correct format', () => {
-    //     expect(true).toBe(false);
-    // });
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Invalid primary key');
+    });
 
-    // test('$filter should error if invalid comparison operator is sent with a null value', () => {
-    //     expect(true).toBe(false);
-    // });
+    test('$filter should be able to get results with multiple filters', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Surname eq \'Jacob\' OR Firstname eq \'Jackson\'';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([{ 'Id': 1, 'Firstname': 'Jackson', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }, { 'Id': 2, 'Firstname': 'Jeff', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname]=@userSurname OR [user].[firstname]=@userFirstname;');
+        expect(sqlResults.variables).toMatchObject({userSurname: 'Jacob', userFirstname: 'Jackson'});
+    });
+
+    test('$filter should support nulls', async () => {
+        // Check is eq null works
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Surname eq null';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([{ 'Id': 1, 'Firstname': 'Jackson', 'Surname': null, 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NULL;');
+        expect(sqlResults.variables).toMatchObject({});
+
+        // Check ne to null works
+        ctx.req.query['$filter'] = 'Surname ne null';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([{ 'Id': 1, 'Firstname': 'Jackson', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }]);
+
+        // Verify SQL & Variables
+        const sqlResults2 = GetSQLData(mockedPreparedStatement, 1);
+        expect(sqlResults2.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NOT NULL;');
+        expect(sqlResults2.variables).toMatchObject({});
+
+    });
+
+    test('$filter should support null with other filters', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Surname eq null OR Firstname eq \'Jackson\'';
+
+        await api(ctx, ctx.req);
+
+        expect(ctx.res.status).toBe(200);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement, 0);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NULL OR [user].[firstname]=@userFirstname;');
+        expect(sqlResults.variables).toMatchObject({ userFirstname: 'Jackson' });
+
+    });
+
+    test('$filter should error if unsupported comparison operator is done with a null', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Surname ge null';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Only eq or ne operators are allowed for null values');
+    });
+
+    test('$filter should error if not in correct format', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Surname eqnull';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unknown $filter segment detected Surname eqnull');
+    });
+
+    test('$filter should error if a non filterable field is chosen', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Portfolio eq null';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Portfolio is not a filterable field');
+    });
+
+    test('$filter should error if a unknown field is chosen', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$filter'] = 'Unknown eq null';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Field Unknown does not exist on entity to $filter');
+    });
 
     // test('$filter should error if a field is not filterable', () => {
     //     expect(true).toBe(false);
@@ -262,6 +372,7 @@ describe('API Functionality', () => {
         // Clone for patch aswell
         const patchCtx = Object.assign({}, ctx);
         patchCtx.req.method = 'PATCH';
+        patchCtx.req.params['id'] = '3';
 
         await api(ctx, ctx.req);
         await api(patchCtx, patchCtx.req);
@@ -286,7 +397,7 @@ describe('API Functionality', () => {
     test('It should error if an unknown entity is provided', async () => {
         ctx.req.method = 'DELETE';
         ctx.req.params['entity'] = 'Random';
-
+        ctx.req.params['id'] = '1';
 
         await api(ctx, ctx.req);
 
