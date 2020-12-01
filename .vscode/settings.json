@@ -21,6 +21,7 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  // Done to disable weird auto-formatting issues
   "editor.formatOnSave": false,
   "editor.formatOnType": false,
   "editor.codeActionsOnSave": {
