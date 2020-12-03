@@ -206,25 +206,46 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Field Unknown does not exist on entity to $filter');
     });
 
-    // test('$filter should error if a field is not filterable', () => {
-    //     expect(true).toBe(false);
-    // });
+    test('$select should error if a unknown field is selected', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$select'] = 'Unknown, Firstname, Surname';
 
-    // test('$filter should error if a field does not exist on a property', () => {
-    //     expect(true).toBe(false);
-    // });
+        await api(ctx, ctx.req);
 
-    // test('$select should only return the specified fields', () => {
-    //     expect(true).toBe(false);
-    // });
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Field Unknown does not exist on entity to $select');
+    });
 
-    // test('$select should error if a field is not selectable', () => {
-    //     expect(true).toBe(false);
-    // });
+    test('$select error if a field is not selectable', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$select'] = 'Portfolio, Firstname, Surname';
 
-    // test('$select should error if a field does not exist on a property', () => {
-    //     expect(true).toBe(false);
-    // });
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Portfolio is not a selectable field');
+    });
+
+    test('$select should return the selected fields', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$select'] = 'Id, Firstname, Surname, CreatedOn';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([{Id: 1, Firstname: 'Jackson', Surname: 'Jacob', CreatedOn: '2020-11-14T19:54:04.000Z'}]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement, 0);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn FROM dbo.[user] ;');
+        expect(sqlResults.variables).toMatchObject({});
+    });
 
     test('It should create a entity', async () => {
         ctx.req.method = 'POST';
