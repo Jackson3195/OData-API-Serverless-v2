@@ -2,6 +2,33 @@ import { IResult, IRecordSet } from 'mssql';
 
 // Hash SQL Hash lookup to result
 const sqlToResult: Record<string, Partial<IResult<unknown>>> = {
+    // Top fields
+    '95eec111866f1c7f42dee455320df549': {
+        recordset: [
+            {
+                'Id': 1,
+                'Firstname': 'Jackson',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            },
+            {
+                'Id': 2,
+                'Firstname': 'Jeff',
+                'Surname': 'Jacob',
+                'CreatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedOn': '2020-11-14T19:54:04.000Z',
+                'LastUpdatedBy': 'API',
+                'Obsolete': false,
+                'ObsoletedOn': null,
+                'ObsoletedBy': null
+            }
+        ] as IRecordSet<unknown>
+    },
     // Select fields
     '27a9cc3e16ee93b973b25e194a8b0b1c': {
         recordset: [

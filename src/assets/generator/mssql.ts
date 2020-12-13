@@ -45,10 +45,10 @@ export default class MSSQLGenerator {
     }
 
     private GenerateSelectStatement (ts: Schema['entity'], tableName: string, entityId: string, query: Record<string, string>): SQLInputObject {
-        // Create base query - (Passed my reference since passing an object instead of a direct value)
+        // Create base query - (Passed by reference since passing an object instead of a direct value)
         const result: SQLInputObject = {
             // TODO: Handle default pagination
-            sql: `SELECT %FIELD% FROM ${tableName} %FILTER%;`,
+            sql: `SELECT(%TOP%) %FIELD% FROM ${tableName} %FILTER%;`,
             variables: []
         };
         // Handle $select
@@ -57,8 +57,11 @@ export default class MSSQLGenerator {
         if (this.errors.length === 0) {
             this.ParseFilter(ts, result, query, entityId);
         }
-        // TODO: Handle $expand
-        // TODO: Handle $top
+        // TODO: Handle $expand; likely needs to be recursive!
+        // Handle $top
+        if (this.errors.length === 0) {
+            this.ParseTop(result, query);
+        }
         // TODO: Handle $orderby
         // TODO: Handle $pagination
         return result;
@@ -128,7 +131,7 @@ export default class MSSQLGenerator {
                     }
                 }
             } else {
-                // Clear filter context and populate with entityId
+                // Clear filter context and populate with entityId as context such that the user can see what's exploding
                 delete query['$filter'];
                 query['EntityId'] = entityId;
                 this.errors.push(new Error('Invalid primary key'));
@@ -151,13 +154,13 @@ export default class MSSQLGenerator {
                 not: 'NOT',
             };
             // Get fields
-            const seperator = new RegExp(/\s(and|or|not|AND|OR|NOT)\s/gm);
+            const seperator = new RegExp(/\s(and|or|not)\s/gm, 'i'); // Additional flag to remove case sensitivity
             const filters: string[] = query['$filter'].split(seperator);
             // Append SQL where statement
             result.sql = result.sql.replace(regexFilter, 'WHERE %FIELD%%COMPOP%%VALUE%');
             // Setup regex filters
-            const regexFilterStatement = new RegExp(/([A-Za-z0-9]*)\s(eq|ne|gt|ge|lt|le)\s[A-Za-z0-9\'\\]*/gm);
-            const regexComparisonOperators = new RegExp(/\s(eq|ne|gt|ge|lt|le)\s/gm);
+            const regexFilterStatement = new RegExp(/([A-Za-z0-9]*)\s(eq|ne|gt|ge|lt|le)\s[A-Za-z0-9\'\\]*/gm, 'i');
+            const regexComparisonOperators = new RegExp(/\s(eq|ne|gt|ge|lt|le)\s/gm, 'i');
             const regexField = new RegExp(/%FIELD%/gm);
             const regexComparisonOperator = new RegExp(/%COMPOP%/gm);
             const regexValue = new RegExp(/%VALUE%/gm);
@@ -232,6 +235,22 @@ export default class MSSQLGenerator {
             }
         } else {
             result.sql = result.sql.replace(regexFilter, '');
+        }
+    }
+
+    // Complexity: O(1)
+    private ParseTop (result: SQLInputObject, query: Record<string, string>) {
+        const regexTop = new RegExp(/(\(%TOP%\))/gm);
+        if (query['$top']) {
+            // Determine if value is number or not
+            const topValue = Sanitize<number>(query['$top'], true);
+            if (!isNaN(topValue)) {
+                result.sql = result.sql.replace(regexTop, ` TOP ${topValue}`);
+            } else {
+                this.errors.push(new Error('Invalid $top value'));
+            }
+        } else {
+            result.sql = result.sql.replace(regexTop, '');
         }
     }
 
@@ -349,6 +368,7 @@ export default class MSSQLGenerator {
                 variables,
             };
         }
+
         // Determine if any errors
         if (this.errors.length > 0) {
             this.HandleError(attributes);
@@ -358,7 +378,6 @@ export default class MSSQLGenerator {
             // return response object
             return result;
         }
-
     }
 
     private HandleError (payload: Record<string, Primitives>) {
@@ -382,7 +401,7 @@ export default class MSSQLGenerator {
                 }
                 // Determine if Obsolete is present in payload
                 if (attributes['Obsolete'] !== undefined) {
-                    if (attributes['Obsolete'] === true) {
+                    if (attributes['Obsolete']) {
                         attributes['ObsoletedOn'] = new Date(new Date().toUTCString());
                         attributes['ObsoletedBy'] = this.userId;
                     } else {
