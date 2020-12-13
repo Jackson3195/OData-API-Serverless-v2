@@ -19,6 +19,7 @@ const mssqlConfig: config = {
     },
     options: {
         encrypt: true,
+        enableArithAbort: true
     },
 };
 
