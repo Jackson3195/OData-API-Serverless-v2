@@ -276,6 +276,59 @@ describe('API Functionality', () => {
         expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Invalid $top value');
     });
 
+    test('$orderby should return error if not in the correct format', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$orderby'] = 'Firstname UNKNWON FORMAT';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unknown $orderby segment detected Firstname UNKNWON FORMAT');
+    });
+
+    test('$orderby should return error if unknown field is selected', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$orderby'] = 'UnknownFIeld asc';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Unknown field UnknownFIeld');
+    });
+
+    test('$orderby should return error if field is not orderable', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$orderby'] = 'Portfolio asc';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Portfolio is not orderable');
+    });
+
+    test('$orderby should order results', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$orderby'] = 'CreatedOn ASC, LastUpdatedOn desc';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+        expect(ctx.res.body).toMatchObject([{ 'Id': 1, 'Firstname': 'Jackson', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }, { 'Id': 2, 'Firstname': 'Jeff', 'Surname': 'Jacob', 'CreatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedOn': '2020-11-14T19:54:04.000Z', 'LastUpdatedBy': 'API', 'Obsolete': false, 'ObsoletedOn': null, 'ObsoletedBy': null }]);
+
+        // Verify SQL & Variables
+        const sqlResults = GetSQLData(mockedPreparedStatement, 0);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ORDER BY [user].[createdOn] ASC, [user].[lastUpdatedOn] DESC;');
+        expect(sqlResults.variables).toMatchObject({});
+    });
+
     test('It should create a entity', async () => {
         ctx.req.method = 'POST';
         ctx.req.params['entity'] = 'Users';

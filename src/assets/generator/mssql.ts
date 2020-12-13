@@ -48,7 +48,7 @@ export default class MSSQLGenerator {
         // Create base query - (Passed by reference since passing an object instead of a direct value)
         const result: SQLInputObject = {
             // TODO: Handle default pagination
-            sql: `SELECT(%TOP%) %FIELD% FROM ${tableName} %FILTER%;`,
+            sql: `SELECT(%TOP%) %FIELD% FROM ${tableName} %FILTER%(%ORDERBY%);`,
             variables: []
         };
         // Handle $select
@@ -62,7 +62,10 @@ export default class MSSQLGenerator {
         if (this.errors.length === 0) {
             this.ParseTop(result, query);
         }
-        // TODO: Handle $orderby
+        // Handle $orderby
+        if (this.errors.length === 0) {
+            this.ParseOrderBy(ts, result, query);
+        }
         // TODO: Handle $pagination
         return result;
     }
@@ -251,6 +254,51 @@ export default class MSSQLGenerator {
             }
         } else {
             result.sql = result.sql.replace(regexTop, '');
+        }
+    }
+
+    // Complexity: O(n)
+    private ParseOrderBy (ts: Schema['entity'], result: SQLInputObject, query: Record<string, string>) {
+        const regexOrder = new RegExp(/(\(%ORDERBY%\))/gm);
+        if (query['$orderby']) {
+            // Get fields to order by
+            const orderByFields = query['$orderby'].split(',');
+            const regexOrderFormat = new RegExp(/([a-zA-Z0-9]*\s(asc|desc))/gm, 'i'); // Case insensitive to consider ASC/asc and DESC/desc
+            const regexFieldOrder = new RegExp(/%FIELDORDER%/gm);
+            // Iterate through fields to order by
+            for (let i = 0; i < orderByFields.length; i++) {
+                result.sql = result.sql.replace(regexOrder, 'ORDER BY %FIELDORDER%');
+                const fieldAndOrder = orderByFields[i].trim();
+                // Determine if value is in correct format of FIELD DIRECTION
+                if (regexOrderFormat.test(fieldAndOrder)) {
+                    // Split by spaces, remove any random spaces between field and direction
+                    const fieldAndOrderSections = fieldAndOrder.split(/\s/).filter((v) => v);
+                    const field = fieldAndOrderSections[0];
+                    const direction = fieldAndOrderSections[1].toUpperCase();
+                    const attribute = ts.Attributes[field];
+                    // Determine if field exists
+                    if (attribute) {
+                        // Determine if field is orderable
+                        if (this.isFieldAttribute(attribute)) {
+                            // Create order by clause
+                            const replaceValue = `[${ts.Tablename}].[${attribute.SQL.Name}] ${direction}`;
+                            if (i < (orderByFields.length - 1)) {
+                                result.sql = result.sql.replace(regexFieldOrder, `${replaceValue}, %FIELDORDER%`);
+                            } else {
+                                result.sql = result.sql.replace(regexFieldOrder, replaceValue);
+                            }
+                        } else {
+                            this.errors.push(new Error(`${field} is not orderable`));
+                        }
+                    } else {
+                        this.errors.push(new Error(`Unknown field ${field}`));
+                    }
+                } else {
+                    this.errors.push(new Error(`Unknown $orderby segment detected ${fieldAndOrder}`));
+                }
+            }
+        } else {
+            result.sql = result.sql.replace(regexOrder, '');
         }
     }
 
