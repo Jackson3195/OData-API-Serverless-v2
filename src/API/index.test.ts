@@ -42,7 +42,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({});
     });
 
@@ -59,7 +59,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[id]=@userId;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[id]=@userId ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({userId: '2'});
     });
 
@@ -76,7 +76,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement);
-        expect(sqlResults.sql).toBe('SELECT [property_user].[propertyId] AS PropertyId, [property_user].[userId] AS UserId, [property_user].[data1] AS Data1 FROM dbo.[property_user] WHERE [property_user].[propertyId]=@property_userPropertyId AND [property_user].[userId]=@property_userUserId;');
+        expect(sqlResults.sql).toBe('SELECT [property_user].[propertyId] AS PropertyId, [property_user].[userId] AS UserId, [property_user].[data1] AS Data1 FROM dbo.[property_user] WHERE [property_user].[propertyId]=@property_userPropertyId AND [property_user].[userId]=@property_userUserId ORDER BY [property_user].[propertyId] DESC, [property_user].[userId] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({property_userPropertyId: '1', property_userUserId: '2'});
     });
 
@@ -105,7 +105,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname]=@userSurname OR [user].[firstname]=@userFirstname;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname]=@userSurname OR [user].[firstname]=@userFirstname ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({userSurname: 'Jacob', userFirstname: 'Jackson'});
     });
 
@@ -123,7 +123,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NULL;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NULL ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({});
 
         // Check ne to null works
@@ -137,7 +137,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults2 = GetSQLData(mockedPreparedStatement, 1);
-        expect(sqlResults2.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NOT NULL;');
+        expect(sqlResults2.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NOT NULL ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults2.variables).toMatchObject({});
 
     });
@@ -153,7 +153,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement, 0);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NULL OR [user].[firstname]=@userFirstname;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] WHERE [user].[surname] IS NULL OR [user].[firstname]=@userFirstname ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({ userFirstname: 'Jackson' });
 
     });
@@ -243,7 +243,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement, 0);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn FROM dbo.[user] ;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn FROM dbo.[user] ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({});
     });
 
@@ -260,7 +260,7 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement, 0);
-        expect(sqlResults.sql).toBe('SELECT TOP 2 [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ;');
+        expect(sqlResults.sql).toBe('SELECT TOP 2 [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({});
     });
 
@@ -325,8 +325,48 @@ describe('API Functionality', () => {
 
         // Verify SQL & Variables
         const sqlResults = GetSQLData(mockedPreparedStatement, 0);
-        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ORDER BY [user].[createdOn] ASC, [user].[lastUpdatedOn] DESC;');
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ORDER BY [user].[createdOn] ASC, [user].[lastUpdatedOn] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
         expect(sqlResults.variables).toMatchObject({});
+    });
+
+    test('$page should return error if a non numeric value is supplied', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$page'] = 'NON NUMERIC VALUE';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('Invalid $page value');
+    });
+
+    test('$page should return error if page value is less than 1', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$page'] = '0';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(400);
+        expect((ctx.res.body as ErrorResponse).errors[0].message).toBe('$page value should be greater than 0');
+    });
+
+    test('$page should return the correct page of data', async () => {
+        ctx.req.method = 'GET';
+        ctx.req.params['entity'] = 'Users';
+        ctx.req.query['$page'] = '2';
+
+        await api(ctx, ctx.req);
+
+        // Verify HTTP result
+        expect(ctx.res.status).toBe(200);
+
+        // Verify SQL & Variables;
+        const sqlResults = GetSQLData(mockedPreparedStatement, 0);
+        expect(sqlResults.sql).toBe('SELECT [user].[id] AS Id, [user].[firstname] AS Firstname, [user].[surname] AS Surname, [user].[createdOn] AS CreatedOn, [user].[lastUpdatedOn] AS LastUpdatedOn, [user].[lastUpdatedBy] AS LastUpdatedBy, [user].[obsolete] AS Obsolete, [user].[obsoletedOn] AS ObsoletedOn, [user].[obsoletedBy] AS ObsoletedBy FROM dbo.[user] ORDER BY [user].[id] DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;');
+        expect(sqlResults.variables).toMatchObject({ offset: 100, limit: 100 });
     });
 
     test('It should create a entity', async () => {
