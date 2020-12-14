@@ -304,11 +304,11 @@ export default class MSSQLGenerator {
                 }
             }
         } else {
-            // Default order by by PKs and latest
+            // Default order by by PKs DESC
+            const defaultDirection = 'DESC';
             for (let i = 0; i < ts.PrimaryKey.length; i++) {
                 // Create order by clause
                 const attribute = ts.Attributes[ts.PrimaryKey[i]] as FieldAttribute;
-                const defaultDirection = 'DESC';
                 const replaceValue = `[${ts.Tablename}].[${attribute.SQL.Name}] ${defaultDirection}`;
                 if (i < (ts.PrimaryKey.length - 1)) {
                     result.sql = result.sql.replace(regexFieldOrder, `${replaceValue}, %FIELDORDER%`);
