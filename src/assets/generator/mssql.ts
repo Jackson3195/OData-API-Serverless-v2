@@ -27,13 +27,15 @@ export default class MSSQLGenerator {
     private errors: Error[] = [];
 
     private sqlDb: MSSQLConnection;
+    private pageSize: number;
 
     // Constructor
-    constructor (ctx: Context, connection: MSSQLConnection) {
+    constructor (ctx: Context, connection: MSSQLConnection, pageSize: number) {
         // Assign context
         this.ctx = ctx;
         this.sqlDb = connection;
         this.local = process.env['AzureWebJobsStorage'] === 'UseDevelopmentStorage=true';
+        this.pageSize = pageSize;
     }
 
     public GenerateAndExecute (type: StatementType, entity: string, entityId: string, attributes: Record<string, Primitives>): Promise<IResult<unknown>> {
@@ -48,7 +50,7 @@ export default class MSSQLGenerator {
         // Create base query - (Passed by reference since passing an object instead of a direct value)
         const result: SQLInputObject = {
             // TODO: Handle default pagination
-            sql: `SELECT(%TOP%) %FIELD% FROM ${tableName} %FILTER%(%ORDERBY%);`,
+            sql: `SELECT(%TOP%) %FIELD% FROM ${tableName}(%FILTER%)(%ORDERBY%)(%PAGINATION%);`,
             variables: []
         };
         // Handle $select
@@ -67,6 +69,9 @@ export default class MSSQLGenerator {
             this.ParseOrderBy(ts, result, query);
         }
         // TODO: Handle $pagination
+        if (this.errors.length === 0) {
+            this.ParsePagination(result, query);
+        }
         return result;
     }
 
@@ -118,8 +123,8 @@ export default class MSSQLGenerator {
     }
 
     // Complexity: O(n)
-    private ParseFilter (ts: Schema['entity'], result: SQLInputObject, query: Record<string, string>, entityId: string = null) {
-        const regexFilter = new RegExp(/(%FILTER%)/gm);
+    private ParseFilter (ts: Schema['entity'], result: SQLInputObject, query: Record<string, string>, entityId: string) {
+        const regexFilter = new RegExp(/(\(%FILTER%\))/gm);
         // Support entity Id if the $filter is not provided
         if (entityId && !query['$filter']) {
             query['$filter'] = '%PKFIELD%';
@@ -160,7 +165,7 @@ export default class MSSQLGenerator {
             const seperator = new RegExp(/\s(and|or|not)\s/gm, 'i'); // Additional flag to remove case sensitivity
             const filters: string[] = query['$filter'].split(seperator);
             // Append SQL where statement
-            result.sql = result.sql.replace(regexFilter, 'WHERE %FIELD%%COMPOP%%VALUE%');
+            result.sql = result.sql.replace(regexFilter, ' WHERE %FIELD%%COMPOP%%VALUE%');
             // Setup regex filters
             const regexFilterStatement = new RegExp(/([A-Za-z0-9]*)\s(eq|ne|gt|ge|lt|le)\s[A-Za-z0-9\'\\]*/gm, 'i');
             const regexComparisonOperators = new RegExp(/\s(eq|ne|gt|ge|lt|le)\s/gm, 'i');
@@ -259,15 +264,17 @@ export default class MSSQLGenerator {
 
     // Complexity: O(n)
     private ParseOrderBy (ts: Schema['entity'], result: SQLInputObject, query: Record<string, string>) {
+        // Setup query to add order by clause; this defaults to PK's DESC if order by is not present
         const regexOrder = new RegExp(/(\(%ORDERBY%\))/gm);
+        result.sql = result.sql.replace(regexOrder, ' ORDER BY %FIELDORDER%');
+        const regexFieldOrder = new RegExp(/%FIELDORDER%/gm);
+        // Determine if the filter is present or not
         if (query['$orderby']) {
             // Get fields to order by
             const orderByFields = query['$orderby'].split(',');
             const regexOrderFormat = new RegExp(/([a-zA-Z0-9]*\s(asc|desc))/gm, 'i'); // Case insensitive to consider ASC/asc and DESC/desc
-            const regexFieldOrder = new RegExp(/%FIELDORDER%/gm);
             // Iterate through fields to order by
             for (let i = 0; i < orderByFields.length; i++) {
-                result.sql = result.sql.replace(regexOrder, 'ORDER BY %FIELDORDER%');
                 const fieldAndOrder = orderByFields[i].trim();
                 // Determine if value is in correct format of FIELD DIRECTION
                 if (regexOrderFormat.test(fieldAndOrder)) {
@@ -298,7 +305,62 @@ export default class MSSQLGenerator {
                 }
             }
         } else {
-            result.sql = result.sql.replace(regexOrder, '');
+            // Default order by by PKs and latest
+            for (let i = 0; i < ts.PrimaryKey.length; i++) {
+                // Create order by clause
+                const attribute = ts.Attributes[ts.PrimaryKey[i]] as FieldAttribute;
+                const defaultDirection = 'DESC';
+                const replaceValue = `[${ts.Tablename}].[${attribute.SQL.Name}] ${defaultDirection}`;
+                if (i < (ts.PrimaryKey.length - 1)) {
+                    result.sql = result.sql.replace(regexFieldOrder, `${replaceValue}, %FIELDORDER%`);
+                } else {
+                    result.sql = result.sql.replace(regexFieldOrder, replaceValue);
+                }
+            }
+        }
+    }
+
+    // Complexity: O(1)
+    private ParsePagination (result: SQLInputObject, query: Record<string, string>) {
+        const regexPagination = new RegExp(/(\(%PAGINATION%\))/gm);
+        // Update SQL
+        const sqlValue = ' OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY';
+        result.sql = result.sql.replace(regexPagination, sqlValue);
+        // Determine if pagination information is specified
+        if (query['$page']) {
+            // Determine if value is number or not
+            const pageValue = Sanitize<number>(query['$page'], true);
+            if (!isNaN(pageValue)) {
+                if (pageValue > 0) {
+                    // Add offset + limit variables to payload
+                    result.variables.push({
+                        name: 'offset',
+                        type: Int,
+                        value: (pageValue - 1) * this.pageSize,
+                    });
+                    result.variables.push({
+                        name: 'limit',
+                        type: Int,
+                        value: this.pageSize,
+                    });
+                } else {
+                    this.errors.push(new Error('$page value should be greater than 0'));
+                }
+            } else {
+                this.errors.push(new Error('Invalid $page value'));
+            }
+        } else {
+            // Add offset + limit variables to payload; default to first page
+            result.variables.push({
+                name: 'offset',
+                type: Int,
+                value: 0,
+            });
+            result.variables.push({
+                name: 'limit',
+                type: Int,
+                value: this.pageSize,
+            });
         }
     }
 

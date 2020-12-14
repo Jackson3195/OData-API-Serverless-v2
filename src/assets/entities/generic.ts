@@ -29,7 +29,7 @@ export default class Generic {
         this.entityData = entityData;
 
         this.sqlDb = new MSSqlConnection(this.ctx);
-        this.sqlGenerator = new MSSqlGenerator(this.ctx, this.sqlDb);
+        this.sqlGenerator = new MSSqlGenerator(this.ctx, this.sqlDb, this.pageSize);
     }
 
     public async HandleRequest (): Promise<void> {
