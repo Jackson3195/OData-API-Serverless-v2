@@ -49,17 +49,16 @@ export default class MSSQLGenerator {
     private GenerateSelectStatement (ts: Schema['entity'], tableName: string, entityId: string, query: Record<string, string>): SQLInputObject {
         // Create base query - (Passed by reference since passing an object instead of a direct value)
         const result: SQLInputObject = {
-            // TODO: Handle default pagination
             sql: `SELECT(%TOP%) %FIELD% FROM ${tableName}(%FILTER%)(%ORDERBY%)(%PAGINATION%);`,
             variables: []
         };
+        // TODO: Parse $expand -> Get $select, Get $filter, Get joins; likely need to be done recursivly
         // Handle $select
         this.ParseSelect(ts, result, query);
         // Handle $filter
         if (this.errors.length === 0) {
             this.ParseFilter(ts, result, query, entityId);
         }
-        // TODO: Handle $expand; likely needs to be recursive!
         // Handle $top
         if (this.errors.length === 0) {
             this.ParseTop(result, query);
@@ -68,7 +67,7 @@ export default class MSSQLGenerator {
         if (this.errors.length === 0) {
             this.ParseOrderBy(ts, result, query);
         }
-        // TODO: Handle $pagination
+        // Handle $pagination
         if (this.errors.length === 0) {
             this.ParsePagination(result, query);
         }
