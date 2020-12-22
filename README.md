@@ -61,33 +61,33 @@
 
 # TODOs
 
-- [ ] - Sanitize values
-- [ ] - Improve error handling
+- [X] - Sanitize values
+- [X] - Improve error handling
 - [ ] - Use Entity & Entity Field tables to generate schema and interfaces
 - [ ] - Use Entity Relationship tables to generate schema with foreign key relationships
 - [ ] - Integrate with REDIS
-- [ ] - Be able to query data using $select, $filter
+- [X] - Be able to query data using $select, $filter
 - [ ] - Artiect a way to inject logic based on REQUEST
-- [ ] - Unit tests with 99%+ coverage
-- [ ] - Support composite primary keys
+- [X] - Unit tests with 99%+ coverage
+- [X] - Support composite primary keys
 - [ ] - Integrate Sonarqube into project
 - [ ] - Dynamic Class loading
   - [ ] - Use a dictionary of object to class and then do new dictionary
 
 # Dev - TODOs
 
-- [ ] - Get entity information before create/update/delete and pass it in
+- [X] - Get entity information before create/update/delete and pass it in
 - [ ] - Split Generic into SQL|Cosmos entities; both should extend a base entity
-- [ ] - Fix path issue such that at build it replaces with absolute path
-- [ ] - Upgrade to latest TypeScript
+- [X] - Fix path issue such that at build it replaces with absolute path
+- [X] - Upgrade to latest TypeScript
 - [ ] - Split generators into own folders; if tests; folder -> index + test or move tests into seperate folder
-- [ ] - Make SQL Generator simpler; have select in a different generator
+- [X] - Make SQL Generator simpler; have select in a different generator
 - [ ] - Create cosmos connection class
-- [ ] - Refactor SQL connection class
+- [X] - Refactor SQL connection class
 - [ ] - Create static classes for things like application insights to just be used wherever
-- [ ] - Update mixins with latest code from Lordly
+- [X] - Update mixins with latest code from Lordly
 - [ ] - Metadata should only generate interfaces when working locally or post content to an endpoint which will create it into a package and publish a new version
-- [ ] - Support core vs non-core tables
+- [X] - Support core vs non-core tables
 - [ ] - Create method to get structure hash of database in SQL
 - [ ] - Figure out which methods could be made static for reuse and reduce memory footprint
 - [ ] - Cosmos based schema - Maybe?

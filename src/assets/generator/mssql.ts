@@ -74,6 +74,10 @@ export default class MSSQLGenerator {
         return result;
     }
 
+    private ParseExpand (ts:Schema['entity'], result: SQLInputObject, query: Record<string, string>) {
+
+    }
+
     // Complexity: O(n)
     private ParseSelect (ts: Schema['entity'], result: SQLInputObject, query: Record<string, string>) {
         const regexField = new RegExp(/(%FIELD%)/gm);
@@ -116,9 +120,9 @@ export default class MSSQLGenerator {
                     result.sql = result.sql.replace(regexField, (`[${ts.Tablename}].[${metadata.SQL.Name}] AS ${keys[i]}, %FIELD%`));
                 }
             }
+            // Replace last field
+            result.sql = result.sql.replace(new RegExp(/(, %FIELD%)/gm), '');
         }
-        // Replace last field
-        result.sql = result.sql.replace(new RegExp(/(, %FIELD%)/gm), '');
     }
 
     // Complexity: O(n)

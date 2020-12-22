@@ -25,6 +25,7 @@ export interface ReferenceAttribute extends AttributeMetadata {
 export interface AttributeMetadata {
     Visible: Visability;
     Type: 'Field' | 'Reference';
+    Core: boolean;
 }
 
 export interface SQLMetadata {
